@@ -47,7 +47,6 @@ class LocalisedSnowstorm constructor(private val twepoch: Long = LocalisedSnowst
         datacenterId = datacenterOverride ?: getDatacenterId()
     }
 
-    @Synchronized
     suspend fun generateLongId(): Long {
         var timestamp = System.currentTimeMillis()
 
