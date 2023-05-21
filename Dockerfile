@@ -12,7 +12,7 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o 
 
 # build jar with gradle
 
-FROM gradle:7-jdk8 as gradle-build
+FROM gradle:8-jdk8 as gradle-build
 
 WORKDIR /home/gradle/project
 
@@ -49,4 +49,4 @@ COPY --from=gradle-build /home/gradle/project/EternalJukebox/build/libs/* ./
 # envsubst is used so environment variables can be used instead of a config file
 
 CMD envsubst < "/EternalJukebox/envvar_config.yaml" > "/EternalJukebox/config.yaml"\
-    && java -jar EternalJukebox.jar
+    && java -jar EternalJukebox-all.jar
