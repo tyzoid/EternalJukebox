@@ -31,7 +31,7 @@ RUN  cd EternalJukebox\
 
 # build web with jekyll
 
-FROM jekyll/jekyll:stable as jekyll-build
+FROM rockstorm/jekyll:latest as jekyll-build
 
 WORKDIR /EternalJukebox
 
