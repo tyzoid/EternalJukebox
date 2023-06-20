@@ -327,7 +327,7 @@ object YoutubeAudioSource : IAudioSource {
                 ?: EternalJukebox.config.audioSourceOptions["audioCommand"]) as? String)?.split("\\s+".toRegex())
                     ?: if (System.getProperty("os.name").toLowerCase()
                     .contains("windows")
-            ) listOf("yt.bat") else listOf("bash", "yt.sh")
+            ) listOf("yt.bat") else listOf("sh", "yt.sh")
 
         if (apiKey == null)
             logger.warn(

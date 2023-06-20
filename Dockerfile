@@ -1,13 +1,14 @@
 # set up the main image with dependencies first, to avoid re-doing this after each build
-FROM adoptopenjdk:8-jdk-hotspot as deps
+FROM eclipse-temurin:8-jdk-alpine as deps
 
 WORKDIR /EternalJukebox
 
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
-    && chmod a+rx /usr/local/bin/yt-dlp \
-    && apt-get update \
-    && apt-get install ffmpeg gettext python3 -y \
-    && apt-get clean \
+RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /usr/local/bin/yt-dlp \
+    && chmod a+rx /usr/local/bin/yt-dlp
+
+RUN apk update \
+    && apk add ffmpeg gettext python3 \
+    && apk cache clean \
     && touch hikari.properties
 
 # build jar with gradle
@@ -15,7 +16,6 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o 
 FROM gradle:8-jdk8 as gradle-build
 
 WORKDIR /home/gradle/project
-
 
 # Only copy dependency-related files
 COPY build.gradle gradle.propertie* settings.gradle ./EternalJukebox/
@@ -26,8 +26,9 @@ RUN gradle clean shadowJar --no-daemon > /dev/null 2>&1 || true
 
 COPY . ./EternalJukebox
 
-RUN  cd EternalJukebox\
-     && gradle clean shadowJar --no-daemon
+WORKDIR /home/gradle/project/EternalJukebox
+
+RUN gradle clean shadowJar --no-daemon
 
 # build web with jekyll
 
