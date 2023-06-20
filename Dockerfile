@@ -1,5 +1,5 @@
 # set up the main image with dependencies first, to avoid re-doing this after each build
-FROM eclipse-temurin:8-jdk-alpine as deps
+FROM amazoncorretto:8-alpine-jre as deps
 
 WORKDIR /EternalJukebox
 
@@ -8,7 +8,6 @@ RUN wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -O /us
 
 RUN apk update \
     && apk add ffmpeg gettext python3 \
-    && apk cache clean \
     && touch hikari.properties
 
 # build jar with gradle
