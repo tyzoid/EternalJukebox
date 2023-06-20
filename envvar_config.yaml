@@ -28,12 +28,11 @@ audioSourceOptions:
 
 # How long blocking workers can go for (in ns)
 workerExecuteTime: 1200000000000
-
 # Can either be JDBC or H2
 # If H2, you'll need to provide 'databaseName' under options, or leave it blank to default to 'eternal_jukebox'
 # The values below are only needed if you're connecting to something like a MySQL database
-databaseType: JDBC
-databaseOptions:
-  username: ${SQL_USERNAME}
-  password: ${SQL_PASSWORD}
-  jdbcUrl: jdbc:${SQL_TYPE}://${SQL_HOST}:${SQL_PORT}/${SQL_DATABASE_NAME}?useSSL=false
+# databaseType: JDBC
+# databaseOptions:
+#   username: ${SQL_USERNAME}
+#   password: ${SQL_PASSWORD}
+#   jdbcUrl: jdbc:${SQL_TYPE}://${SQL_HOST}:${SQL_PORT}/${SQL_DATABASE_NAME}?useSSL=false
