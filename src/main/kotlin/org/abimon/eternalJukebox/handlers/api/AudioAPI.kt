@@ -252,7 +252,7 @@ object AudioAPI : IAPI {
                             val tmpFile = File("$uuid.tmp")
                             val tmpLog = File("$b64-$uuid.log")
                             val ffmpegLog = File("$b64-$uuid.log")
-                            val endGoalTmp = File(tmpFile.absolutePath.replace(".tmp", ".$format"))
+                            val endGoalTmp = File(tmpFile.absolutePath.replace(".tmp", ".tmp.$format"))
 
                             try {
                                 withContext(Dispatchers.IO) {
