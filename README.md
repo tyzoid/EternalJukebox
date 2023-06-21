@@ -24,7 +24,7 @@ You'll also need `envvar_config.yaml`, but only edit this if you want some advan
 You can use the following `docker-compose.yaml` as a starting point to run the application without needing a database running, if you want to use a db refer to the main `docker-compose.yaml`.
 
 ```yaml
-version: '3'
+version: "3"
 
 services:
   main:
@@ -34,7 +34,7 @@ services:
     env_file:
       - .env
     volumes:
-      - './envvar_config.yaml:/EternalJukebox/envvar_config.yaml'
+      - "./envvar_config.yaml:/EternalJukebox/envvar_config.yaml"
 ```
 
 To start, run `docker compose up -d` in the folder containing `envvar_config.yaml`, `.env` and `docker-compose.yaml`. To stop, run `docker compose down`.
