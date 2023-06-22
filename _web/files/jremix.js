@@ -27,15 +27,16 @@ function createJRemixer(context, jquery) {
                         track.status = 'ok';
                         callback(1, track, 100);
                     } else {
-                        context.decodeAudioData(request.response, 
+                        context.decodeAudioData(request.response,
                             function(buffer) {      // completed function
                                 track.buffer = buffer;
                                 track.status = 'ok';
                                 callback(1, track, 100);
-                            }, 
+                            },
                             function(e) { // error function
                                 track.status = 'error: loading audio';
                                 callback(-1, track, 0);
+                                $("span#info").textContent = "Audio could not be retrieved, provide a youtube link or file on the tune settings"
                                 console.log('audio error', e);
                             }
                         );
