@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  jukebox-dev:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - 5005:5005
+      - 8080:8080
+    env_file:
+      - .env
+    environment:
+      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+    volumes:
+      - './envvar_config.yaml:/EternalJukebox/envvar_config.yaml'
+      - './data:/EternalJukebox/data'
+      - './build/libs/EternalJukebox-all.jar:/EternalJukebox/EternalJukebox-all.jar'
