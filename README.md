@@ -2,7 +2,7 @@
 
 This repository is a fork which fixes bugs because the upstream repo is unmaintained.
 
-You can visit the hosted instance of this repository [here](https://jukebox.davi.gq/), in case you want to mess around with it without doing all the hard stuff.
+You can visit the hosted instance of this repository [here](https://jukebox.justdavi.dev/), in case you want to mess around with it without doing all the hard stuff.
 
 The source files for the EternalJukebox, a rehosting of the Infinite Jukebox.
 This repo contains everything you need to host the EternalJukebox on your own server!
