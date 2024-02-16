@@ -345,5 +345,6 @@ object YoutubeAudioSource : IAudioSource {
         if (apiKey == null) logger.warn(
             "Warning: No API key provided. We're going to scrape the Youtube search page which is a not great thing to do.\nTo obtain an API key, follow the guide here (https://developers.google.com/youtube/v3/getting-started) or over on the EternalJukebox Github page!"
         )
+        NewPipe.init(DownloaderImpl.init())
     }
 }
