@@ -1,5 +1,7 @@
 package org.abimon.eternalJukebox
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
@@ -40,7 +42,6 @@ import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 object EternalJukebox {
     val jsonMapper: ObjectMapper = ObjectMapper()
@@ -112,6 +113,9 @@ object EternalJukebox {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        val hikariLogger = LoggerFactory.getLogger("com.zaxxer.hikari") as Logger
+        hikariLogger.level = Level.INFO
+
         EternalJukebox.start()
     }
 
