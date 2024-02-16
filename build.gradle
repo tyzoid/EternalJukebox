@@ -59,6 +59,8 @@ dependencies {
     implementation 'com.github.ben-manes.caffeine:caffeine:2.8.2'
 
     implementation "com.jakewharton.fliptables:fliptables:1.0.2"
+
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.22.1'
 }
 
 compileKotlin {

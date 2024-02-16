@@ -10,10 +10,14 @@ import org.abimon.eternalJukebox.objects.*
 import org.abimon.eternalJukebox.useThenDelete
 import org.abimon.visi.io.DataSource
 import org.abimon.visi.io.FileDataSource
+import org.schabi.newpipe.extractor.*
+import org.schabi.newpipe.extractor.search.SearchInfo
+import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
+import org.schabi.newpipe.extractor.stream.StreamInfoItem
+import org.schabi.newpipe.extractor.stream.StreamType
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URL
-import java.net.URLEncoder
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -29,6 +33,7 @@ object YoutubeAudioSource : IAudioSource {
 
     val logger = LoggerFactory.getLogger("YoutubeAudioSource")
 
+    val serviceId = ServiceList.YouTube.serviceId
     val mimes = mapOf(
         "m4a" to "audio/m4a", "aac" to "audio/aac", "mp3" to "audio/mpeg", "ogg" to "audio/ogg", "wav" to "audio/wav"
     )
@@ -39,35 +44,38 @@ object YoutubeAudioSource : IAudioSource {
     override suspend fun provide(info: JukeboxInfo, clientInfo: ClientInfo?): DataSource? {
         logger.trace("[{}] Attempting to provide audio for {}", clientInfo?.userUID, info.id)
 
-        val stringToSearch: String
-        if (apiKey == null) {
-            // Get audio directly via yt-dlp music search
-            val videoName = "${info.artist} - ${info.title}"
-            val encodedVideoName = URLEncoder.encode(videoName, "UTF-8")
-            stringToSearch =
-                "https://music.youtube.com/search?q=${encodedVideoName}&sp=EgWKAQIIAWoKEAoQAxAEEAkQBQ%3D%3D"
-        } else {
+        var stringToSearch: String? = null
+        val queryText = "${info.artist} - ${info.title}"
+        if (apiKey != null) {
             val searchResults = getMultiContentDetailsWithKey(searchYoutubeWithKey(
-                "${info.artist} - ${info.title}", 10
+                queryText, 10
             ).map { it.id.videoId })
             val both = searchResults.sortedWith { o1, o2 ->
                 abs(info.duration - o1.contentDetails.duration.toMillis()).compareTo(abs(info.duration - o2.contentDetails.duration.toMillis()))
             }
 
-            val closest = both.firstOrNull() ?: run {
-                logger.error(
-                    "[{}] Searches for both \"{} - {}\" and \"{} - {} lyrics\" turned up nothing",
-                    clientInfo?.userUID,
-                    info.artist,
-                    info.title,
-                    info.artist,
-                    info.title
-                )
-                return null
+            both.firstOrNull()?.let { stringToSearch = it.id } ?: run {
+                logger.warn("[${clientInfo?.userUID}] Searches for \"$queryText\" using YouTube Data API v3 turned up nothing")
             }
-            stringToSearch = closest.id
+        }
+        if (stringToSearch == null) {
+            val infoItems = searchYouTubeUsingNewPipeExtractor(queryText)
+
+            val both = infoItems.sortedWith { o1, o2 ->
+                abs(info.duration - TimeUnit.SECONDS.toMillis(o1.duration)).compareTo(
+                    abs(
+                        info.duration - TimeUnit.SECONDS.toMillis(
+                            o2.duration
+                        )
+                    )
+                )
+            }
+            both.firstOrNull()?.let { stringToSearch = it.url } ?: run {
+                logger.error("[${clientInfo?.userUID}] Searches for \"$queryText\" using NewPipeExtractor turned up nothing")
+            }
         }
 
+        if (stringToSearch == null) return null
         logger.trace(
             "[{}] Settled on {}", clientInfo?.userUID, stringToSearch
         )
@@ -283,6 +291,42 @@ object YoutubeAudioSource : IAudioSource {
         }
 
         return EternalJukebox.jsonMapper.readValue(result, YoutubeSearchResults::class.java).items
+    }
+
+    private fun searchYouTubeUsingNewPipeExtractor(queryText: String): MutableList<StreamInfoItem> {
+        val query = NewPipe.getService(serviceId)
+            .searchQHFactory
+            .fromQuery(queryText, listOf(YoutubeSearchQueryHandlerFactory.VIDEOS), "")
+
+        val searchInfo: SearchInfo
+        try {
+            searchInfo = SearchInfo.getInfo(NewPipe.getService(serviceId), query)
+        } catch (e: Exception) {
+            logger.error("Failed to acquire search results for $queryText", e)
+            return mutableListOf()
+        }
+        val infoItems = searchInfo.relatedItems
+            .filterIsInstance<StreamInfoItem>()
+            .filter { it.streamType == StreamType.VIDEO_STREAM }
+            .toMutableList()
+
+        var nextPage = searchInfo.nextPage
+        try {
+            while (infoItems.size < 10 && Page.isValid(nextPage)) {
+                val moreItems: ListExtractor.InfoItemsPage<InfoItem> = SearchInfo.getMoreItems(
+                    NewPipe.getService(serviceId),
+                    query, searchInfo.nextPage
+                )
+                infoItems.addAll(moreItems.items
+                    .filterIsInstance<StreamInfoItem>()
+                    .filter { it.streamType == StreamType.VIDEO_STREAM }
+                    .toMutableList())
+                nextPage = moreItems.nextPage
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed to acquire additional search pages for $queryText", e)
+        }
+        return infoItems
     }
 
     init {
