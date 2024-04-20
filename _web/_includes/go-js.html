@@ -1409,27 +1409,27 @@
         });
     }
 
-    function checkIfStarred() {
-        getShareURL(function (id) {
-            $.ajax({
-                url: "/api/profile/me",
-                dataType: "json",
-                type: "GET",
-                success: function (data) {
-                    var stars = data["stars"];
-                    for (var i = 0; i < stars.length; i++) {
-                        if (stars[i] === id) {
-                            $("#star").text("Unstar");
-                            break;
-                        }
-                    }
-                },
-                error: function (xhr, textStatus, error) {
-                    console.log("Could not retrieve stars: " + error)
-                }
-            });
-        });
-    }
+    // function checkIfStarred() {
+    //     getShareURL(function (id) {
+    //         $.ajax({
+    //             url: "/api/profile/me",
+    //             dataType: "json",
+    //             type: "GET",
+    //             success: function (data) {
+    //                 var stars = data["stars"];
+    //                 for (var i = 0; i < stars.length; i++) {
+    //                     if (stars[i] === id) {
+    //                         $("#star").text("Unstar");
+    //                         break;
+    //                     }
+    //                 }
+    //             },
+    //             error: function (xhr, textStatus, error) {
+    //                 console.log("Could not retrieve stars: " + error)
+    //             }
+    //         });
+    //     });
+    // }
 
     function init() {
         document.ondblclick = function DoubleClick(event) {
@@ -1498,34 +1498,34 @@
             }
         );
 
-        $("#star").click(
-            function () {
-                getShareURL(function (shortID) {
-                    $.ajax({
-                        url: "/api/profile/stars/" + shortID,
-                        type: $("#star").text() === "Star" ? "PUT" : "DELETE",
-                        headers: {
-                            "X-XSRF-TOKEN": document.cookie.substring(document.cookie.indexOf("XSRF-TOKEN")).split(";")[0].split("=").slice(1).join("=")
-                        },
-                        success: function (data) {
-                            if ($("#star").text() === "Star") {
-                                $("#info").text("Successfully starred!");
-                                $("#star").text("Unstar");
-                            } else {
-                                $("#info").text("Successfully unstarred!");
-                                $("#star").text("Star");
-                            }
-                        },
-                        error: function (xhr, textStatus, error) {
-                            if (error === "Unauthorized")
-                                $("#info").text("An error occurred while starring: You're not logged in!");
-                            else
-                                $("#info").text("An error occurred while starring: " + error + "!");
-                        }
-                    });
-                });
-            }
-        );
+        // $("#star").click(
+        //     function () {
+        //         getShareURL(function (shortID) {
+        //             $.ajax({
+        //                 url: "/api/profile/stars/" + shortID,
+        //                 type: $("#star").text() === "Star" ? "PUT" : "DELETE",
+        //                 headers: {
+        //                     "X-XSRF-TOKEN": document.cookie.substring(document.cookie.indexOf("XSRF-TOKEN")).split(";")[0].split("=").slice(1).join("=")
+        //                 },
+        //                 success: function (data) {
+        //                     if ($("#star").text() === "Star") {
+        //                         $("#info").text("Successfully starred!");
+        //                         $("#star").text("Unstar");
+        //                     } else {
+        //                         $("#info").text("Successfully unstarred!");
+        //                         $("#star").text("Star");
+        //                     }
+        //                 },
+        //                 error: function (xhr, textStatus, error) {
+        //                     if (error === "Unauthorized")
+        //                         $("#info").text("An error occurred while starring: You're not logged in!");
+        //                     else
+        //                         $("#info").text("An error occurred while starring: " + error + "!");
+        //                 }
+        //             });
+        //         });
+        //     }
+        // );
 
         $("#short-url").click(
             function () {
@@ -1873,7 +1873,7 @@
             remixer = createJRemixer(context, $);
             player = remixer.getPlayer();
             processParams();
-            checkIfStarred();
+            // checkIfStarred();
         }
     }
 
@@ -2725,27 +2725,27 @@
         });
     }
 
-    function checkIfStarred() {
-        getShareURL(function (id) {
-            $.ajax({
-                url: "/api/profile/me",
-                dataType: "json",
-                type: "GET",
-                success: function (data) {
-                    var stars = data["stars"];
-                    for (var i = 0; i < stars.length; i++) {
-                        if (stars[i] === id) {
-                            $("#star").text("Unstar");
-                            break;
-                        }
-                    }
-                },
-                error: function (xhr, textStatus, error) {
-                    console.log("Error: " + error)
-                }
-            });
-        });
-    }
+    // function checkIfStarred() {
+    //     getShareURL(function (id) {
+    //         $.ajax({
+    //             url: "/api/profile/me",
+    //             dataType: "json",
+    //             type: "GET",
+    //             success: function (data) {
+    //                 var stars = data["stars"];
+    //                 for (var i = 0; i < stars.length; i++) {
+    //                     if (stars[i] === id) {
+    //                         $("#star").text("Unstar");
+    //                         break;
+    //                     }
+    //                 }
+    //             },
+    //             error: function (xhr, textStatus, error) {
+    //                 console.log("Error: " + error)
+    //             }
+    //         });
+    //     });
+    // }
 
     function init() {
         jQuery.ajaxSettings.traditional = true;
@@ -2769,34 +2769,34 @@
             }
         );
 
-        $("#star").click(
-            function () {
-                getShareURL(function (shortID) {
-                    $.ajax({
-                        url: "api/profile/stars/" + shortID,
-                        type: $("#star").text() === "Star" ? "PUT" : "DELETE",
-                        headers: {
-                            "X-XSRF-TOKEN": document.cookie.substring(document.cookie.indexOf("XSRF-TOKEN")).split(";")[0].split("=").slice(1).join("=")
-                        },
-                        success: function (data) {
-                            if ($("#star").text() === "Star") {
-                                $("#info").text("Successfully starred!");
-                                $("#star").text("Unstar");
-                            } else {
-                                $("#info").text("Successfully unstarred!");
-                                $("#star").text("Star");
-                            }
-                        },
-                        error: function (xhr, textStatus, error) {
-                            if (error === "Unauthorized")
-                                $("#info").text("An error occurred while starring: You're not logged in!");
-                            else
-                                $("#info").text("An error occurred while starring: " + error + "!");
-                        }
-                    });
-                });
-            }
-        );
+        // $("#star").click(
+        //     function () {
+        //         getShareURL(function (shortID) {
+        //             $.ajax({
+        //                 url: "api/profile/stars/" + shortID,
+        //                 type: $("#star").text() === "Star" ? "PUT" : "DELETE",
+        //                 headers: {
+        //                     "X-XSRF-TOKEN": document.cookie.substring(document.cookie.indexOf("XSRF-TOKEN")).split(";")[0].split("=").slice(1).join("=")
+        //                 },
+        //                 success: function (data) {
+        //                     if ($("#star").text() === "Star") {
+        //                         $("#info").text("Successfully starred!");
+        //                         $("#star").text("Unstar");
+        //                     } else {
+        //                         $("#info").text("Successfully unstarred!");
+        //                         $("#star").text("Star");
+        //                     }
+        //                 },
+        //                 error: function (xhr, textStatus, error) {
+        //                     if (error === "Unauthorized")
+        //                         $("#info").text("An error occurred while starring: You're not logged in!");
+        //                     else
+        //                         $("#info").text("An error occurred while starring: " + error + "!");
+        //                 }
+        //             });
+        //         });
+        //     }
+        // );
 
         $("#short-url").click(
             function () {
