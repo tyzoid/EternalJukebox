@@ -108,7 +108,7 @@ li.dropdown {
     float:right;
 }
 
-#song-list {
+#song-list, #search-list, #popular-list {
     cursor:pointer;
 }
 
