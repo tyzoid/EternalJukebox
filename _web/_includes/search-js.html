@@ -13,21 +13,19 @@ function searchForTrack() {
             console.log(data);
 
             $("#pick").hide();
+            $("#popular-list").hide();
             listTracks('#search-list', data);
         });
     }
 }
 
-function listTracks(active, tracks) {
-    $('#song-div').show();
-    $('#song-list').empty();
-    $('.sel-list').removeClass('activated');
-    $(active).addClass('activated');
+function listTracks(listElem, tracks) {
+    $(listElem).empty();
     for (var i = 0; i < tracks.length; i++) {
         var s = tracks[i];
         var item = listSong(s);
         if (item) {
-            $('#song-list').append(listSong(s));
+            $(listElem).append(listSong(s));
         }
     }
 }
@@ -104,7 +102,7 @@ function init() {
     });
 
     $.getJSON('api/site/popular/{% if page.app == 'jukebox' %}jukebox{% elsif page.app == 'canonizer' %}canonizer{% endif %}', {count: 12}, function (data) {
-        listTracks('#favourite-list', data);
+        listTracks('#popular-list', data);
     });
 }
 
