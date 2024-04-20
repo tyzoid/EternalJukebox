@@ -10,6 +10,13 @@ spotifySecret: ${SPOTIFYSECRET}
 googleClient: ${GOOGLECLIENT}
 googleSecret: ${GOOGLESECRET}
 
+disable:
+  # Would only create empty analytics files if not disabled because analyticsProviders is not set
+  analytics: true
+  # We are not a node instance and SiteAPI also provides /healthy
+  nodeAPI: true
+
+
 # These can be any folders you want
 storageType: LOCAL
 storageOptions:
