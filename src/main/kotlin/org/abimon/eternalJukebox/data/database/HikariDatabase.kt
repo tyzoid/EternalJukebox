@@ -517,7 +517,7 @@ abstract class HikariDatabase : IDatabase {
 
         GlobalScope.launch {
             while (isActive) {
-                println("[Condensing Popular Updates]")
+//                println("[Condensing Popular Updates]")
                 val updates: MutableMap<String, Int> = HashMap()
 
                 withTimeoutOrNull(5_000) {
@@ -527,7 +527,7 @@ abstract class HikariDatabase : IDatabase {
                     }
                 }
 
-                println("[Updating Popular Database]")
+//                println("[Updating Popular Database]")
 
                 withContext(Dispatchers.IO) {
                     use { connection ->
@@ -560,7 +560,7 @@ abstract class HikariDatabase : IDatabase {
 
         GlobalScope.launch {
             while (isActive) {
-                println("[Condensing Location Updates]")
+//                println("[Condensing Location Updates]")
                 val updates: MutableMap<String, String> = HashMap()
 
                 withTimeoutOrNull(5_000) {
@@ -570,7 +570,7 @@ abstract class HikariDatabase : IDatabase {
                     }
                 }
 
-                println("[Updating Location Database]")
+//                println("[Updating Location Database]")
 
                 withContext(Dispatchers.IO) {
                     use { connection ->
@@ -615,7 +615,7 @@ abstract class HikariDatabase : IDatabase {
 
         GlobalScope.launch {
             while (isActive) {
-                println("[Condensing Info Updates]")
+//                println("[Condensing Info Updates]")
                 val updates: MutableMap<String, JukeboxInfo> = HashMap()
 
                 withTimeoutOrNull(5_000) {
@@ -625,7 +625,7 @@ abstract class HikariDatabase : IDatabase {
                     }
                 }
 
-                println("[Updating Info Database]")
+//                println("[Updating Info Database]")
 
                 withContext(Dispatchers.IO) {
                     use { connection ->
