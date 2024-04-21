@@ -82,7 +82,11 @@ function goDirect() {
         alert("Please enter a valid Spotify song share link (open.spotify.com/track/<id>)");
         return;
     }
-    var params = new URLSearchParams({id: match[1], audio: $("#direct-audio").val()});
+    var params = new URLSearchParams({id: match[1]});
+    var audioValue = $("#direct-audio").val().trim();
+    if (audioValue) {
+        params.append('audio', audioValue);
+    }
     window.location.href = "{% if page.app == 'jukebox' %}jukebox{% elsif page.app == 'canonizer' %}canonizer{% endif %}_go.html?" + params.toString();
 }
 
