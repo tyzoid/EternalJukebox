@@ -1,5 +1,5 @@
 # set up the main image with dependencies first, to avoid re-doing this after each build
-FROM amazoncorretto:8-alpine-jre as deps
+FROM amazoncorretto:11-alpine as deps
 
 WORKDIR /EternalJukebox
 
@@ -12,7 +12,7 @@ RUN apk update \
 
 # build jar with gradle
 
-FROM gradle:8-jdk8 as gradle-build
+FROM gradle:8-jdk11 as gradle-build
 
 WORKDIR /home/gradle/project
 

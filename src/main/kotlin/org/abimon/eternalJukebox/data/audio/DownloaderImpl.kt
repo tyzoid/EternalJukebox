@@ -2,14 +2,13 @@ package org.abimon.eternalJukebox.data.audio
 
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.Method
+import com.github.kittinunf.result.Result
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.downloader.Request
 import org.schabi.newpipe.extractor.downloader.Response
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import java.io.IOException
-import java.util.*
 import java.util.concurrent.TimeUnit
-import com.github.kittinunf.result.Result
 
 class DownloaderImpl private constructor() : Downloader() {
 
@@ -57,7 +56,6 @@ class DownloaderImpl private constructor() : Downloader() {
         /**
          * It's recommended to call exactly once in the entire lifetime of the application.
          *
-         * @param builder if null, default builder will be used
          * @return a new instance of [DownloaderImpl]
          */
         fun init(): DownloaderImpl? {

@@ -49,7 +49,7 @@ I highly recommend using Docker, as it is the easiest way to get the Eternal Juk
 
 ## Prerequisites
 
-### Java 1.8:
+### Java:
 
 ##### Windows
 
@@ -92,7 +92,7 @@ You'll need to obtain a copy of [Gradle](https://gradle.org/install/), likely a 
 From there, building in Gradle is simple; just run `./gradlew clean shadowJar` from the project file directory. That should produce a jar file in `build/libs` that will work for you. In addition, you'll need to build the Jekyll webpages, which can be done by running `jekyll build --source _web --destination web`
 
 ```sh
-git clone https://github.com/daviirodrig/EternalJukebox.git
+git clone https://github.com/tyzoid/EternalJukebox.git
 cd EternalJukebox
 ./gradlew clean shadowJar
 jekyll build --source _web --destination web
@@ -108,6 +108,8 @@ There give it a name and description and click create.
 It should send you to the new app's page, the only thing you need from here is your Client ID and Client Secret
 (Note: Never share these with anyone!)
 
+You will also need a Youtube Data API key, which you can find about how to obtain [here](https://developers.google.com/youtube/v3/getting-started).
+
 There are a variety of config options (documentation coming soon) that allow most portions of the EternalJukebox to be configured, and these can be entered here.
 
 ## Starting the server:
@@ -121,3 +123,11 @@ If everything went right it should say `Listening at http://0.0.0.0:8080`
 you should now be able to connect to it with a browser through http://localhost:8080
 
 Congrats you did it!
+
+## Manually Building
+
+This is not recommended unless you're making some modifications, and as such should only be performed by more advanced users
+
+You'll need to obtain a copy of [Gradle](https://gradle.org/install/), likely a [JDK](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html), and [Jekyll](https://jekyllrb.com/). You'll also need the project files in some capacity, be it `git clone` or downloading the archive from GitHub.
+
+From there, building in Gradle is simple; just run `gradle clean shadowJar` from the project file directory. That should produce a jar file in `build/libs` that will work for you. In addition, you'll need to build the Jekyll webpages, which can be done by running `jekyll build --source _web --destination web`
