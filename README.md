@@ -45,9 +45,11 @@ If you want to change the port from 8080, edit `docker-compose.yml` port, to be 
 
 # Manual Install
 
+I highly recommend using Docker, as it is the easiest way to get the Eternal Jukebox up and running. If you want to use Docker, follow the instructions in the Docker Install section. Otherwise, you can try following this section.
+
 ## Prerequisites
 
-### Java:
+### Java 1.8:
 
 ##### Windows
 
@@ -85,9 +87,16 @@ ffmpeg is available to download in most distributions using `sudo apt-get instal
 
 ## Getting the project files:
 
-The whole process of obtaining project files is much easier now, as the build process is streamlined through Jenkins.
+You'll need to obtain a copy of [Gradle](https://gradle.org/install/), likely a [JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html), and [Jekyll](https://jekyllrb.com/). You'll also need the project files in some capacity, be it `git clone` or downloading the archive from GitHub.
 
-The project site is over [here](https://jenkins.abimon.org/job/EternalJukebox/), and contains the individual files to download, or an all-in-one zip for all the files. Alternatively, the files can be found over at a permanent server [here](https://abimon.org/eternal_jukebox)
+From there, building in Gradle is simple; just run `./gradlew clean shadowJar` from the project file directory. That should produce a jar file in `build/libs` that will work for you. In addition, you'll need to build the Jekyll webpages, which can be done by running `jekyll build --source _web --destination web`
+
+```sh
+git clone https://github.com/daviirodrig/EternalJukebox.git
+cd EternalJukebox
+./gradlew clean shadowJar
+jekyll build --source _web --destination web
+```
 
 ## Configuring
 
@@ -99,8 +108,6 @@ There give it a name and description and click create.
 It should send you to the new app's page, the only thing you need from here is your Client ID and Client Secret
 (Note: Never share these with anyone!)
 
-You will also need a Youtube Data API key, which you can find about how to obtain [here](https://developers.google.com/youtube/v3/getting-started).
-
 There are a variety of config options (documentation coming soon) that allow most portions of the EternalJukebox to be configured, and these can be entered here.
 
 ## Starting the server:
@@ -109,16 +116,8 @@ First you need to open the Terminal or Command Prompt.
 Then make sure its running in the folder that your EternalJukebox.jar is in, once again to do this use the `cd` command.
 Then execute the jar with `java -jar EternalJukebox.jar`
 
-If everything went right it should say `Listening at http://0.0.0.0:11037`
+If everything went right it should say `Listening at http://0.0.0.0:8080`
 
-you should now be able to connect to it with a browser through http://localhost:11037
+you should now be able to connect to it with a browser through http://localhost:8080
 
 Congrats you did it!
-
-## Manually Building
-
-This is not recommended unless you're making some modifications, and as such should only be performed by more advanced users
-
-You'll need to obtain a copy of [Gradle](https://gradle.org/install/), likely a [JDK](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html), and [Jekyll](https://jekyllrb.com/). You'll also need the project files in some capacity, be it `git clone` or downloading the archive from GitHub.
-
-From there, building in Gradle is simple; just run `gradle clean shadowJar` from the project file directory. That should produce a jar file in `build/libs` that will work for you. In addition, you'll need to build the Jekyll webpages, which can be done by running `jekyll build --source _web --destination web`
