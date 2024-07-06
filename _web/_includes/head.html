@@ -3,7 +3,8 @@
   {% if page.layout == 'go' %}<script src="files/raphael-min.js" type="text/javascript" charset="utf-8"></script>{% endif %}
   {% if page.layout == 'go' %}<link rel="stylesheet" href="files/jquery-ui.css" type="text/css" media="screen">{% endif %}
   <link rel="stylesheet" href="files/canonizer_styles.css?version={{ site.data.var.version }}" type="text/css" media="screen">
-  {% if page.app == 'jukebox' and page.layout == 'go' %}<link rel="stylesheet" href="files/styles.css?version={{ site.data.var.version }}" type="text/css" media="screen">{% endif %}
+  {% if page.app == 'jukebox' and page.layout == 'go' %}<link rel="stylesheet" href="files/styles.css?version={{ site.data.var.version }}" type="text/css" media="screen">
+  {% include worker-js.html %}{% endif %}
   <script src="{{ site.data.var.jquery }}/jquery-3.2.1.min.js"></script>
   <link rel="stylesheet" href="{{ site.data.var.cdn }}/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <link rel="stylesheet" href="{{ site.data.var.cdn }}/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">

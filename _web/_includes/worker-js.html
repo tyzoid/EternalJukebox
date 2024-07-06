@@ -1,0 +1,45 @@
+<script type="text/javascript">
+    const worker = new Worker('worker.js');
+    const callbacks = new Map();
+    let nextId = 1;
+    let isDocumentHidden = document.hidden;
+
+    worker.onmessage = function (event) {
+        const {id} = event.data;
+        if (callbacks.has(id)) {
+            const callback = callbacks.get(id);
+            callback();
+            callbacks.delete(id);
+        }
+    };
+
+    const originalSetTimeout = window.setTimeout;
+    const originalClearTimeout = window.clearTimeout;
+
+    function workerSetTimeout(callback, delay, ...args) {
+        const id = -nextId++; // Use negative IDs for worker timeouts
+        callbacks.set(id, () => callback(...args));
+        worker.postMessage({command: 'setTimeout', id, delay});
+        return id;
+    }
+
+    function customClearTimeout(id) {
+        if (id < 0 && callbacks.has(id)) {
+            callbacks.delete(id);
+            worker.postMessage({command: 'clearTimeout', id});
+        } else {
+            originalClearTimeout(id);
+        }
+    }
+
+    function customSetTimeout(callback, delay, ...args) {
+        return isDocumentHidden ? workerSetTimeout(callback, delay, ...args) : originalSetTimeout(callback, delay, ...args);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        isDocumentHidden = document.hidden;
+    });
+
+    window.setTimeout = customSetTimeout;
+    window.clearTimeout = customClearTimeout;
+</script>
