@@ -1337,10 +1337,8 @@
             jukeboxData.infiniteMode = !jukeboxData.infiniteMode;
             if (jukeboxData.infiniteMode) {
                 info("Infinite Mode enabled");
-                ga_track('main', 'infinite-mode', '');
             } else {
                 info("Bringing it on home");
-                ga_track('main', 'home', '');
             }
         }
 
@@ -1352,10 +1350,8 @@
             evt.preventDefault();
             if (driver.isRunning()) {
                 driver.stop();
-                ga_track('main', 'key-stop', '');
             } else {
                 driver.start();
-                ga_track('main', 'key-start', '');
             }
         }
 
@@ -1448,7 +1444,6 @@
 
         $("#load").click(
             function () {
-                ga_track('main', 'load', '');
                 if (!uploadingAllowed) {
                     alert("Sorry, uploading is temporarily disabled, while we are under heavy load");
                 } else {
@@ -1461,10 +1456,8 @@
             function () {
                 if (driver.isRunning()) {
                     driver.stop();
-                    ga_track('main', 'stop', track.info.id);
                 } else {
                     driver.start();
-                    ga_track('main', 'start', track.info.id);
                 }
             }
         );
@@ -1482,7 +1475,6 @@
                     driver.stop();
                 }
                 setDisplayMode(false);
-                ga_track('main', 'new', '');
             }
         );
 
@@ -1494,7 +1486,6 @@
                 else
                     controls.dialog('open');
                 jukeboxData.tuningOpen = !jukeboxData.tuningOpen;
-                ga_track('main', 'tune', '');
             }
         );
 
@@ -1561,7 +1552,6 @@
         $("#reset-edges").click(
             function () {
                 resetTuning();
-                ga_track('main', 'reset', '');
             }
         );
 

@@ -430,7 +430,6 @@ app: jukebox
     function listPopularTracks() {
         $.getJSON('/api/site/popular/jukebox', {count: 12}, function (data) {
             listTracks('#popular-list', data);
-            ga_track('list', 'popular-tracks', '');
         });
     }
 
@@ -1386,10 +1385,8 @@ app: jukebox
             jukeboxData.infiniteMode = !jukeboxData.infiniteMode;
             if (jukeboxData.infiniteMode) {
                 info("Infinite Mode enabled");
-                ga_track('main', 'infinite-mode', '');
             } else {
                 info("Bringing it on home");
-                ga_track('main', 'home', '');
             }
         }
 
@@ -1401,10 +1398,8 @@ app: jukebox
             evt.preventDefault();
             if (driver.isRunning()) {
                 driver.stop();
-                ga_track('main', 'key-stop', '');
             } else {
                 driver.start();
-                ga_track('main', 'key-start', '');
             }
         }
 
@@ -1458,7 +1453,6 @@ app: jukebox
 
         $("#load").click(
             function () {
-                ga_track('main', 'load', '');
                 if (!uploadingAllowed) {
                     alert("Sorry, uploading is temporarily disabled, while we are under heavy load");
                 } else {
@@ -1471,10 +1465,8 @@ app: jukebox
             function () {
                 if (driver.isRunning()) {
                     driver.stop();
-                    ga_track('main', 'stop', track.info.id);
                 } else {
                     driver.start();
-                    ga_track('main', 'start', track.info.id);
                 }
             }
         );
@@ -1493,7 +1485,6 @@ app: jukebox
                 }
                 setDisplayMode(false);
                 listPopularTracks();
-                ga_track('main', 'new', '');
             }
         );
 
@@ -1501,7 +1492,6 @@ app: jukebox
             function () {
                 var controls = $("#controls");
                 controls.dialog('open');
-                ga_track('main', 'tune', '');
             }
         );
 
@@ -1519,7 +1509,6 @@ app: jukebox
         $("#reset-edges").click(
             function () {
                 resetTuning();
-                ga_track('main', 'reset', '');
             }
         );
 
