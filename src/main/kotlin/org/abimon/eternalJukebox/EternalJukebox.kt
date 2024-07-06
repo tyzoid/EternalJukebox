@@ -1,10 +1,6 @@
 package org.abimon.eternalJukebox
 
 import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.Logger
-import com.auth0.jwt.JWT
-import com.auth0.jwt.JWTVerifier
-import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -30,12 +26,11 @@ import org.abimon.eternalJukebox.handlers.api.*
 import org.abimon.eternalJukebox.objects.ConstantValues
 import org.abimon.eternalJukebox.objects.EmptyDataAPI
 import org.abimon.eternalJukebox.objects.JukeboxConfig
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
-import java.security.SecureRandom
-import java.time.Instant
 import java.util.*
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.Executors
@@ -49,22 +44,21 @@ object EternalJukebox {
             .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
             .setSerializationInclusion(JsonInclude.Include.NON_ABSENT)
 
-    val yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory())
+    private val yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory())
             .registerModules(Jdk8Module(), KotlinModule(), JavaTimeModule(), ParameterNamesModule())
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
             .setSerializationInclusion(JsonInclude.Include.NON_ABSENT)
 
-    val jsonConfig: File = File("config.json")
-    val yamlConfig: File = File("config.yaml")
+    private val jsonConfig: File = File("config.json")
+    private val yamlConfig: File = File("config.yaml")
 
     val BASE_64_URL = charArrayOf('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_')
 
-    val secureRandom: SecureRandom = SecureRandom()
-
+    @Suppress("JoinDeclarationAndAssignment")
     val config: JukeboxConfig
     val vertx: Vertx
-    val webserver: HttpServer
+    private val webserver: HttpServer
 
     val storage: IStorage
     val audio: IAudioSource?
@@ -76,59 +70,47 @@ object EternalJukebox {
 
     val database: IDatabase
 
-    val visitorAlgorithm: Algorithm
-    val visitorVerifier: JWTVerifier
+    private val logger: Logger = LoggerFactory.getLogger("EternalBox")
 
-    val logger = LoggerFactory.getLogger("EternalBox")
+    private val schedule: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
+    private val apis = ArrayList<IAPI>()
 
-    val oldVisitorToken: String
-        get() = JWT.create()
-                .withIssuedAt(Date.from(Instant.EPOCH))
-                .sign(visitorAlgorithm)
-    val newVisitorToken: String
-        get() = JWT.create()
-                .withIssuedAt(Date.from(Instant.now()))
-                .sign(visitorAlgorithm)
-
-    val schedule: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
-    val apis = ArrayList<IAPI>()
-
-    val logStreams: Map<String, PrintStream>
-    val emptyPrintStream = PrintStream(object: OutputStream() {
+    private val logStreams: Map<String, PrintStream>
+    private val emptyPrintStream = PrintStream(object: OutputStream() {
         override fun write(b: Int) {}
         override fun write(b: ByteArray) {}
-        override fun write(b: ByteArray?, off: Int, len: Int) {}
+        override fun write(b: ByteArray, off: Int, len: Int) {}
     })
 
-    val hourlyVisitorsAddress: ConcurrentSkipListSet<String> = ConcurrentSkipListSet()
-    val referrers: ConcurrentSkipListSet<String> = ConcurrentSkipListSet()
-    val referrersFile = File("referrers.txt")
+    private val hourlyVisitorsAddress: ConcurrentSkipListSet<String> = ConcurrentSkipListSet()
+    private val referrers: ConcurrentSkipListSet<String> = ConcurrentSkipListSet()
+    private val referrersFile = File("referrers.txt")
 
-    fun start() {
+    private fun start() {
         webserver.listen(config.port)
         logger.info("Now listening on port {}", config.port)
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val hikariLogger = LoggerFactory.getLogger("com.zaxxer.hikari") as Logger
+        val hikariLogger = LoggerFactory.getLogger("com.zaxxer.hikari") as ch.qos.logback.classic.Logger
         hikariLogger.level = Level.INFO
 
-        EternalJukebox.start()
+        start()
     }
 
     init {
-        if (jsonConfig.exists())
-            config = jsonMapper.readValue(jsonConfig, JukeboxConfig::class.java)
+        config = if (jsonConfig.exists())
+            jsonMapper.readValue(jsonConfig, JukeboxConfig::class.java)
         else if (yamlConfig.exists())
-            config = yamlMapper.readValue(yamlConfig, JukeboxConfig::class.java)
+            yamlMapper.readValue(yamlConfig, JukeboxConfig::class.java)
         else
-            config = JukeboxConfig()
+            JukeboxConfig()
 
         logStreams = config.logFiles.mapValues { (_, filename) -> if(filename != null) PrintStream(File(filename)) else emptyPrintStream }
 
         if(config.printConfig)
-            logger.trace("Loaded config: $config")
+            logger.trace("Loaded config: {}", config)
         else
             logger.trace("Loaded config")
 
@@ -137,12 +119,6 @@ object EternalJukebox {
 
         // Config Handling
 
-        visitorAlgorithm = Algorithm.HMAC512(ByteArray(config.visitorSecretSize).apply { secureRandom.nextBytes(this) })
-        visitorVerifier = JWT.require(visitorAlgorithm).build()
-
-//        oauthStateAlgorithm = Algorithm.HMAC512(ByteArray(config.oauthStateSecretSize).apply { secureRandom.nextBytes(this) })
-//        oauthStateVerifier = JWT.require(oauthStateAlgorithm).build()
-
         vertx = Vertx.vertx(VertxOptions().setMaxWorkerExecuteTime(config.workerExecuteTime))
         webserver = vertx.createHttpServer()
 
@@ -150,18 +126,12 @@ object EternalJukebox {
 
         val mainRouter = Router.router(vertx)
 
-        //Something something check for cookies
+        //Something, something check for cookies
         mainRouter.route().handler {
             val ip = it.request().remoteAddress().host()
-
-//            if(ip !in uniqueVisitorsAddress) {
-//                it.data()[ConstantValues.UNIQUE_VISITOR]
-//                uniqueVisitorsAddress.add(ip)
-//            }
-
-                if (ip !in hourlyVisitorsAddress) {
-                    it.data()[ConstantValues.HOURLY_UNIQUE_VISITOR] = true
-                    hourlyVisitorsAddress.add(ip)
+            if (ip !in hourlyVisitorsAddress) {
+                it.data()[ConstantValues.HOURLY_UNIQUE_VISITOR] = true
+                hourlyVisitorsAddress.add(ip)
             }
 
             it.request().getHeader("Referer")?.let(referrers::add)
@@ -171,24 +141,12 @@ object EternalJukebox {
             it.next()
         }
 
-        config.redirects.forEach { route, path -> mainRouter.route(route).handler { context -> context.response().redirect(path) } }
+        config.redirects.forEach { (route, path) -> mainRouter.route(route).handler { context -> context.response().redirect(path) } }
 
         val runSiteAPI = isEnabled("siteAPI")
 
         if (runSiteAPI) {
             mainRouter.route().handler {
-                //                requests.incrementAndGet()
-//                hourlyRequests.incrementAndGet()
-//
-//                if(it[ConstantValues.HOURLY_UNIQUE_VISITOR, false]) {
-//                    uniqueVisitors.incrementAndGet()
-//                    log("Unique visitor")
-//                }
-//                if(it[ConstantValues.HOURLY_UNIQUE_VISITOR, false]) {
-//                    hourlyUniqueVisitors.incrementAndGet()
-//                    log("Unique hourly visitor")
-//                }
-
                 it.next()
             }
         }
@@ -213,10 +171,10 @@ object EternalJukebox {
             analyticsProviders = emptyList()
         }
 
-        if (isEnabled("database"))
-            database = config.databaseType.db.objectInstance!!
+        database = if (isEnabled("database"))
+            config.databaseType.db.objectInstance!!
         else
-            database = EmptyDataAPI
+            EmptyDataAPI
 
         if (isEnabled("audioAPI")) {
             apis.add(AudioAPI)
@@ -226,16 +184,13 @@ object EternalJukebox {
             audio = EmptyDataAPI
         }
 
-        if (isEnabled("audioAPI") || isEnabled("analysisAPI"))
-            spotify = SpotifyAnalyser
+        spotify = if (isEnabled("audioAPI") || isEnabled("analysisAPI"))
+            SpotifyAnalyser
         else
-            spotify = EmptyDataAPI
+            EmptyDataAPI
 
         if (isEnabled("nodeAPI"))
             apis.add(NodeAPI)
-
-//        if (isEnabled("profileAPI"))
-//            apis.add(ProfileAPI)
 
         analyticsProviders.forEach { provider -> provider.setupWebAnalytics(mainRouter) }
 
@@ -248,20 +203,13 @@ object EternalJukebox {
 
         if (isEnabled("popular"))
             PopularHandler.setup(mainRouter)
-//        if (isEnabled("openGraph"))
-//            OpenGraphHandler.setup(mainRouter)
         if (isEnabled("staticResources"))
             StaticResources.setup(mainRouter)
 
         webserver.requestHandler(mainRouter)
 
         schedule.scheduleAtFixedRate(0, 1, TimeUnit.HOURS) { referrersFile.writeText(referrers.joinToString("\n")) }
-
-//        if(runSiteAPI)
-//            schedule.scheduleAtFixedRate(0, 1000 * 60 * 60) { hourlyRequests.set(0); hourlyUniqueVisitors.set(0); hourlyVisitorsAddress.clear() }
-//        else
-//            schedule.scheduleAtFixedRate(0, 1000 * 60 * 60) { hourlyVisitorsAddress.clear() }
     }
 
-    fun isEnabled(function: String): Boolean = config.disable[function] != true
+    private fun isEnabled(function: String): Boolean = config.disable[function] != true
 }

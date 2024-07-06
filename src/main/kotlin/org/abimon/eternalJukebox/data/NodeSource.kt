@@ -23,17 +23,4 @@ abstract class NodeSource {
 
         return null
     }
-
-//    private val hostMutex = Mutex()
-//    private val hosts: MutableList<String> = ArrayList()
-//    private val hostEvaluationJob: Job
-//
-//    init {
-//        @Suppress("EXPERIMENTAL_FEATURE_WARNING")
-//        hostEvaluationJob = launch {
-//            while (isActive) {
-//                delay(5, TimeUnit.MINUTES)
-//            }
-//        }
-//    }
 }

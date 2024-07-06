@@ -4,6 +4,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 object MediaWrapper {
+    @Suppress("ClassName")
     object ffmpeg {
         val installed: Boolean
             get() {

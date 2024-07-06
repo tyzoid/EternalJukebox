@@ -1,5 +1,6 @@
 package org.abimon.eternalJukebox.objects
 
+@Suppress("ClassName")
 sealed class EnumAnalyticType<T : Any> {
     companion object {
         val VALUES: Array<EnumAnalyticType<*>> by lazy {
@@ -23,8 +24,4 @@ sealed class EnumAnalyticType<T : Any> {
     object SYSTEM_CPU_LOAD : EnumAnalyticType<Float>()
     object SESSION_REQUESTS : EnumAnalyticType<Long>()
     object HOURLY_REQUESTS : EnumAnalyticType<Long>()
-    object UNIQUE_SESSION_VISITORS : EnumAnalyticType<Long>()
-    object UNIQUE_HOURLY_VISITORS : EnumAnalyticType<Long>()
-    object NEW_ANALYSIS_REQUESTS : EnumAnalyticType<Long>()
-    object NEW_AUDIO_REQUESTS : EnumAnalyticType<Long>()
 }

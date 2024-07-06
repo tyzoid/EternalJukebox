@@ -7,9 +7,9 @@ import org.abimon.visi.lang.usedMemory
 import java.lang.management.ManagementFactory
 
 object SystemAnalyticsProvider: IAnalyticsProvider {
-    val startup = System.currentTimeMillis()
-    val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
-    val PROVIDING = arrayOf(
+    private val startup = System.currentTimeMillis()
+    private val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
+    private val PROVIDING = arrayOf(
             EnumAnalyticType.UPTIME,
             EnumAnalyticType.TOTAL_MEMORY, EnumAnalyticType.FREE_MEMORY, EnumAnalyticType.USED_MEMORY,
             EnumAnalyticType.FREE_MEMORY_PERCENT, EnumAnalyticType.USED_MEMORY_PERCENT,
@@ -18,7 +18,7 @@ object SystemAnalyticsProvider: IAnalyticsProvider {
 
     override fun shouldProvide(type: EnumAnalyticType<*>): Boolean = type in PROVIDING
 
-    @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
+    @Suppress("UNCHECKED_CAST")
     override fun <T: Any> provide(now: Long, type: EnumAnalyticType<T>): T? {
         return when (type) {
             is EnumAnalyticType.UPTIME -> now - startup

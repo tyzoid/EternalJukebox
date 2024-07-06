@@ -11,14 +11,14 @@ import org.abimon.eternalJukebox.exponentiallyBackoff
 import org.abimon.eternalJukebox.objects.*
 import org.abimon.eternalJukebox.tryReadValue
 import org.abimon.visi.io.ByteArrayDataSource
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 object SpotifyAnalyser : IAnalyser {
-    private val REAUTH_TIMER = Timer()
-    val token: AtomicReference<String> = AtomicReference("")
-    val logger = LoggerFactory.getLogger("SpotifyAnalyser")
+    private val token: AtomicReference<String> = AtomicReference("")
+    private val logger: Logger = LoggerFactory.getLogger("SpotifyAnalyser")
 
     override suspend fun search(query: String, clientInfo: ClientInfo?): Array<JukeboxInfo> {
         var error: SpotifyError? = null
@@ -85,7 +85,7 @@ object SpotifyAnalyser : IAnalyser {
                     val backoff = response.header("Retry-After").firstOrNull()?.toIntOrNull() ?: 4
                     logger.warn(
                         "[{}] Got back response code 429; waiting {} seconds before trying again",
-                        clientInfo?.userUID
+                        clientInfo?.userUID, backoff
                     )
                     delay(backoff * 1000L)
                     return@exponentiallyBackoff true
@@ -105,7 +105,7 @@ object SpotifyAnalyser : IAnalyser {
         if (success)
             logger.trace("[{}] Successfully searched for \"{}\"", clientInfo?.userUID, query)
         else
-            logger.trace("[] Failed to search for \"{}\". Error: {}", clientInfo?.userUID, query, error)
+            logger.trace("[{}] Failed to search for \"{}\". Error: {}", clientInfo?.userUID, query, error)
 
         return array.toTypedArray()
     }
@@ -243,7 +243,7 @@ object SpotifyAnalyser : IAnalyser {
                     val backoff = response.header("Retry-After").firstOrNull()?.toIntOrNull() ?: 4
                     logger.warn(
                         "[{}] Got back response code 429; waiting {} seconds before trying again",
-                        clientInfo?.userUID
+                        clientInfo?.userUID, backoff
                     )
                     delay(backoff * 1000L)
                     return@exponentiallyBackoff true
@@ -272,7 +272,7 @@ object SpotifyAnalyser : IAnalyser {
         var error: SpotifyError? = null
         var track: JukeboxInfo? = null
 
-        val success = exponentiallyBackoff(16000, 8) { attempt ->
+        val success = exponentiallyBackoff(16000, 8) { _ ->
             val (_, response, _) = Fuel.get("https://api.spotify.com/v1/tracks/$id").bearer(token.get())
                 .awaitStringResponseResult()
             val mapResponse =
@@ -322,7 +322,8 @@ object SpotifyAnalyser : IAnalyser {
                     val backoff = response.header("Retry-After").firstOrNull()?.toIntOrNull() ?: 4
                     logger.warn(
                         "[{}] Got back response code 429; waiting {} seconds before trying again",
-                        clientInfo?.userUID
+                        clientInfo?.userUID,
+                        backoff
                     )
                     delay(backoff * 1000L)
                     return@exponentiallyBackoff true
@@ -347,7 +348,7 @@ object SpotifyAnalyser : IAnalyser {
         return track
     }
 
-    suspend fun reload(): SpotifyError? {
+    private suspend fun reload(): SpotifyError? {
         var error: SpotifyError? = null
         val success = exponentiallyBackoff(64000, 8) { attempt ->
             logger.trace("Attempting to reload Spotify Token; Attempt {}", attempt)
@@ -386,7 +387,8 @@ object SpotifyAnalyser : IAnalyser {
                 429 -> {
                     val backoff = response.header("Retry-After").firstOrNull()?.toIntOrNull() ?: 4
                     logger.warn(
-                        "Got back response code 429; waiting {} seconds before trying again"
+                        "Got back response code 429; waiting {} seconds before trying again",
+                        backoff
                     )
                     delay(backoff * 1000L)
                     return@exponentiallyBackoff true
@@ -416,6 +418,5 @@ object SpotifyAnalyser : IAnalyser {
                 delay(3000 * 1000)
             }
         }
-//        REAUTH_TIMER.scheduleAtFixedRate(0, 3000 * 1000) { reload() }
     }
 }

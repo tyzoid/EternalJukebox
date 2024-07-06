@@ -9,12 +9,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.InputStream
-import java.io.Reader
 import java.util.*
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 import kotlin.math.pow
@@ -40,12 +40,6 @@ suspend fun exponentiallyBackoff(maximumBackoff: Long, maximumTries: Long, task:
 
 fun Any.toJsonObject(): JsonObject = JsonObject(EternalJukebox.jsonMapper.writeValueAsString(this))
 
-fun jsonObject(init: JsonObject.() -> Unit): JsonObject {
-    val json = JsonObject()
-    json.init()
-    return json
-}
-
 fun jsonObjectOf(vararg pairs: Pair<String, Any>): JsonObject = JsonObject(pairs.toMap())
 
 /**
@@ -54,16 +48,16 @@ fun jsonObjectOf(vararg pairs: Pair<String, Any>): JsonObject = JsonObject(pairs
  */
 inline fun <T> File.useThenDelete(action: (File) -> T): T? {
     try {
-        if (exists())
-            return action(this)
+        return if (exists())
+            action(this)
         else
-            return null
+            null
     } finally {
         guaranteeDelete()
     }
 }
 
-val logger = LoggerFactory.getLogger("Miscellaneous")
+val logger: Logger = LoggerFactory.getLogger("Miscellaneous")
 
 fun File.guaranteeDelete() {
     delete()
@@ -86,10 +80,6 @@ fun File.guaranteeDelete() {
     }
 }
 
-fun Reader.useAndFilterLine(predicate: (String) -> Boolean): String? = this.use { reader -> reader.readLines().firstOrNull(predicate) }
-
-fun Reader.useLineByLine(op: (String) -> Unit) = this.use { reader -> reader.readLines().forEach(op) }
-
 val KClass<*>.simpleClassName: String
     get() = simpleName ?: jvmName.substringAfterLast('.')
 
@@ -98,38 +88,23 @@ fun ScheduledExecutorService.scheduleAtFixedRate(
     every: Long,
     unit: TimeUnit = TimeUnit.MILLISECONDS,
     op: () -> Unit
-) = this.scheduleAtFixedRate(op, initialDelay, every, unit)
+): ScheduledFuture<*> = this.scheduleAtFixedRate(op, initialDelay, every, unit)
 
-fun ScheduledExecutorService.schedule(delay: Long, unit: TimeUnit = TimeUnit.MILLISECONDS, op: () -> Unit) = this.schedule(op, delay, unit)
+fun ScheduledExecutorService.schedule(delay: Long, unit: TimeUnit = TimeUnit.MILLISECONDS, op: () -> Unit): ScheduledFuture<*> = this.schedule(op, delay, unit)
 
-fun <T : Any> ObjectMapper.tryReadValue(src: ByteArray, klass: KClass<T>): T? {
-    try {
-        return this.readValue(src, klass.java)
-    } catch (jsonProcessing: JsonProcessingException) {
-        return null
-    } catch (jsonMapping: JsonMappingException) {
-        return null
-    } catch (jsonParsing: JsonParseException) {
-        return null
-    }
-}
-
-fun <T : Any> ObjectMapper.tryReadValue(src: InputStream, klass: KClass<T>): T? {
-    try {
-        return this.readValue(src, klass.java)
-    } catch (jsonProcessing: JsonProcessingException) {
-        return null
-    } catch (jsonMapping: JsonMappingException) {
-        return null
-    } catch (jsonParsing: JsonParseException) {
-        return null
+fun <T : Any> ObjectMapper.tryReadValue(src: ByteArray, klass: KClass<T>): T? = try {
+    this.readValue(src, klass.java)
+} catch (e: Exception) {
+    when (e) {
+        is JsonMappingException, is JsonParseException, is JsonProcessingException -> null
+        else -> throw e
     }
 }
 
 fun String.toBase64LongOrNull(): Long? {
     var i = 0
     val len: Int = length
-    var limit: Long = -Long.Companion.MAX_VALUE
+    val limit: Long = -Long.Companion.MAX_VALUE
 
     return if (len > 0) {
         val multmin: Long = limit / 64
@@ -154,7 +129,7 @@ fun String.toBase64LongOrNull(): Long? {
 fun String.toBase64Long(): Long {
     var i = 0
     val len: Int = length
-    var limit: Long = -Long.Companion.MAX_VALUE
+    val limit: Long = -Long.Companion.MAX_VALUE
 
     return if (len > 0) {
         val multmin: Long = limit / 64

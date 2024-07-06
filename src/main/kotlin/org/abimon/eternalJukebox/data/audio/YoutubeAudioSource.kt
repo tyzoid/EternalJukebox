@@ -15,6 +15,7 @@ import org.schabi.newpipe.extractor.search.SearchInfo
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.extractor.stream.StreamType
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URL
@@ -25,21 +26,22 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.abs
 
 object YoutubeAudioSource : IAudioSource {
-    val apiKey: String?
-    val uuid: String
+    @Suppress("JoinDeclarationAndAssignment")
+    private val apiKey: String?
+    private val uuid: String
         get() = UUID.randomUUID().toString()
     val format: String
     val command: List<String>
 
-    val logger = LoggerFactory.getLogger("YoutubeAudioSource")
+    private val logger: Logger = LoggerFactory.getLogger("YoutubeAudioSource")
 
-    val serviceId = ServiceList.YouTube.serviceId
+    private val serviceId = ServiceList.YouTube.serviceId
     val mimes = mapOf(
         "m4a" to "audio/m4a", "aac" to "audio/aac", "mp3" to "audio/mpeg", "ogg" to "audio/ogg", "wav" to "audio/wav"
     )
 
-    val hitQuota = AtomicLong(-1)
-    val QUOTA_TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES)
+    private val hitQuota = AtomicLong(-1)
+    private val QUOTA_TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES)
 
     override suspend fun provide(info: JukeboxInfo, clientInfo: ClientInfo?): DataSource? {
         logger.trace("[{}] Attempting to provide audio for {}", clientInfo?.userUID, info.id)
@@ -193,47 +195,9 @@ object YoutubeAudioSource : IAudioSource {
             return withContext(Dispatchers.IO) { URL(dbLocation) }
         }
         return null
-//
-//        if (apiKey == null) return null
-//
-//        logger.trace("[{}] Attempting to provide a location for {}", clientInfo?.userUID, info.id)
-//
-//
-//        return withContext(Dispatchers.IO) {
-//            EternalJukebox.database.storeAudioLocation(info.id, "https://youtu.be/${closest.id}", clientInfo)
-//            URL("https://youtu.be/${closest.id}")
-//        }
     }
 
-    fun getContentDetailsWithKey(id: String): YoutubeContentItem? {
-        val lastQuota = hitQuota.get()
-
-        if (lastQuota != -1L) {
-            if ((Instant.now().toEpochMilli() - lastQuota) < QUOTA_TIMEOUT) return null
-            hitQuota.set(-1)
-        }
-
-        val (_, _, r) = Fuel.get(
-            "https://www.googleapis.com/youtube/v3/videos", listOf(
-                "part" to "contentDetails,snippet", "id" to id, "key" to (apiKey ?: return null)
-            )
-        ).header("User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:44.0) Gecko/20100101 Firefox/44.0")
-            .responseString()
-
-        val (result, error) = r
-
-        if (error != null) {
-            if (error.response.statusCode == 403) {
-                println("Hit quota!")
-                hitQuota.set(Instant.now().toEpochMilli())
-            }
-            return null
-        }
-
-        return EternalJukebox.jsonMapper.readValue(result, YoutubeContentResults::class.java).items.firstOrNull()
-    }
-
-    fun getMultiContentDetailsWithKey(ids: List<String>): List<YoutubeContentItem> {
+    private fun getMultiContentDetailsWithKey(ids: List<String>): List<YoutubeContentItem> {
         val lastQuota = hitQuota.get()
 
         if (lastQuota != -1L) {
@@ -261,7 +225,7 @@ object YoutubeAudioSource : IAudioSource {
         return EternalJukebox.jsonMapper.readValue(result, YoutubeContentResults::class.java).items
     }
 
-    fun searchYoutubeWithKey(query: String, maxResults: Int = 5): List<YoutubeSearchItem> {
+    private fun searchYoutubeWithKey(query: String, maxResults: Int = 5): List<YoutubeSearchItem> {
         val lastQuota = hitQuota.get()
 
         if (lastQuota != -1L) {

@@ -5,6 +5,7 @@ import org.abimon.eternalJukebox.EternalJukebox
 import org.abimon.eternalJukebox.objects.ClientInfo
 import org.abimon.eternalJukebox.objects.EnumStorageType
 import org.abimon.visi.io.DataSource
+import java.util.*
 
 interface IStorage {
     val storageOptions
@@ -12,7 +13,7 @@ interface IStorage {
 
     val disabledStorageTypes: List<EnumStorageType>
         get() = storageOptions.let { storageOptionMap ->
-            EnumStorageType.values().filter { enumStorageType -> storageOptionMap["${enumStorageType.name.toUpperCase()}_IS_DISABLED"]?.toString()?.toBoolean() ?: false }
+            EnumStorageType.values().filter { enumStorageType -> storageOptionMap["${enumStorageType.name.uppercase(Locale.getDefault())}_IS_DISABLED"]?.toString()?.toBoolean() ?: false }
         }
 
     /**

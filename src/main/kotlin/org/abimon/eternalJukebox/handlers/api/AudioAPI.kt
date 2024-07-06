@@ -14,6 +14,7 @@ import org.abimon.eternalJukebox.objects.EnumStorageType
 import org.abimon.visi.io.FileDataSource
 import org.abimon.visi.security.md5Hash
 import org.abimon.visi.security.sha512Hash
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileInputStream
@@ -23,17 +24,16 @@ import java.util.concurrent.TimeUnit
 
 object AudioAPI : IAPI {
     override val mountPath: String = "/audio"
-    override val name: String = "Audio"
-    val logger = LoggerFactory.getLogger("AudioApi")
+    val logger: Logger = LoggerFactory.getLogger("AudioApi")
 
-    val format: String
+    private val format: String
         get() = EternalJukebox.config.audioSourceOptions["AUDIO_FORMAT"] as? String ?: "m4a"
-    val uuid: String
+    private val uuid: String
         get() = UUID.randomUUID().toString()
 
-    val base64Encoder: Base64.Encoder by lazy { Base64.getUrlEncoder() }
+    private val base64Encoder: Base64.Encoder by lazy { Base64.getUrlEncoder() }
 
-    val mime: String
+    private val mime: String
         get() = EternalJukebox.config.audioSourceOptions["AUDIO_MIME"] as? String ?: run {
             when (format) {
                 "m4a" -> return@run "audio/m4a"
@@ -54,7 +54,7 @@ object AudioAPI : IAPI {
         router.post("/upload").suspendingHandler(this::upload)
     }
 
-    suspend fun jukeboxAudio(context: RoutingContext) {
+    private suspend fun jukeboxAudio(context: RoutingContext) {
         if (EternalJukebox.storage.shouldStore(EnumStorageType.AUDIO)) {
             val id = context.pathParam("id")
 
@@ -132,7 +132,7 @@ object AudioAPI : IAPI {
         }
     }
 
-    suspend fun jukeboxLocation(context: RoutingContext) {
+    private suspend fun jukeboxLocation(context: RoutingContext) {
         val id = context.pathParam("id")
 
         val audioOverride = withContext(Dispatchers.IO) { EternalJukebox.database.provideAudioTrackOverride(id, context.clientInfo) }
@@ -155,7 +155,7 @@ object AudioAPI : IAPI {
     }
 
     // url -> fallbackURL -> fallbackID
-    suspend fun externalAudio(context: RoutingContext) {
+    private suspend fun externalAudio(context: RoutingContext) {
         val url = context.request().getParam("url")
 
         if (url != null) {
@@ -188,7 +188,7 @@ object AudioAPI : IAPI {
                         )
                         if (data != null)
                             return context.response().putHeader("X-Client-UID", context.clientInfo.userUID)
-                                .end(data, AudioAPI.mime)
+                                .end(data, mime)
                     } else
                         return
                 } else {
@@ -200,7 +200,7 @@ object AudioAPI : IAPI {
                         format
                     )
                     return context.reroute(
-                        "/api" + mountPath + "/jukebox/${context.request().getParam("fallbackID")
+                        "/api$mountPath" + "/jukebox/${context.request().getParam("fallbackID")
                             ?: "7GhIk7Il098yCjg4BQjzvb"}"
                     )
                 }
@@ -268,8 +268,7 @@ object AudioAPI : IAPI {
                                         logger.warn(
                                             "[{}] Forcibly destroyed the download process for {}",
                                             context.clientInfo.userUID,
-                                            url,
-                                            true
+                                            url
                                         )
                                     }
                                 }
@@ -288,8 +287,7 @@ object AudioAPI : IAPI {
                                                 "[{}] {} does not exist, what happened? (Last line was {})",
                                                 context.clientInfo.userUID,
                                                 tmpFile,
-                                                lastLine,
-                                                true
+                                                lastLine
                                             )
                                         }
 
@@ -396,7 +394,7 @@ object AudioAPI : IAPI {
         }
     }
 
-    suspend fun upload(context: RoutingContext) {
+    private suspend fun upload(context: RoutingContext) {
         if (!EternalJukebox.storage.shouldStore(EnumStorageType.UPLOADED_AUDIO)) {
             return context.endWithStatusCode(502) {
                 this["error"] = "This server does not support uploaded audio"
@@ -425,7 +423,7 @@ object AudioAPI : IAPI {
                     if (!ending.exists())
                         return logger.error("[{}] {} does not exist, what happened?", context.clientInfo.userUID, ending)
                 } else
-                    return logger.error("[{}] ffmpeg not installed, nothing we can do")
+                    return logger.error("[{}] ffmpeg not installed, nothing we can do", context.clientInfo.userUID)
             } finally {
                 starting.guaranteeDelete()
                 withContext(Dispatchers.IO) {
@@ -460,11 +458,11 @@ object AudioAPI : IAPI {
         }
     }
 
-    fun Fuel.headOrGet(url: String): Pair<Request, Response> {
-        val (headRequest, headResponse) = Fuel.head(url).response()
+    private fun Fuel.headOrGet(url: String): Pair<Request, Response> {
+        val (headRequest, headResponse) = head(url).response()
 
         if (headResponse.statusCode == 404) {
-            val (getRequest, getResponse) = Fuel.get(url).response()
+            val (getRequest, getResponse) = get(url).response()
 
             if (headResponse.statusCode != getResponse.statusCode)
                 logger.warn("Request to {} gave a different response between HEAD and GET request ({} vs {})", url, headResponse.statusCode, getResponse.statusCode)

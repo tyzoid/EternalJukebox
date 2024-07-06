@@ -8,10 +8,5 @@ interface IAPI {
      */
     val mountPath: String
 
-    /**
-     * Used to identify this component
-     */
-    val name: String
-
     fun setup(router: Router)
 }

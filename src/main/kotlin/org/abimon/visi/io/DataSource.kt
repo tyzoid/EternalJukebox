@@ -1,6 +1,9 @@
 package org.abimon.visi.io
 
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -27,7 +30,7 @@ class FileDataSource(val file: File) : DataSource {
         get() = file.length()
 }
 
-class HTTPDataSource(val url: URL, val userAgent: String) : DataSource {
+class HTTPDataSource(val url: URL, private val userAgent: String) : DataSource {
     constructor(url: URL) : this(url, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:44.0) Gecko/20100101 Firefox/44.0")
 
     override val data: ByteArray

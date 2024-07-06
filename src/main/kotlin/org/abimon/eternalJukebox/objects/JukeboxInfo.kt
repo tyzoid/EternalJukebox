@@ -1,5 +1,6 @@
 package org.abimon.eternalJukebox.objects
 
+@Suppress("PropertyName")
 data class JukeboxTrack(
         val info: JukeboxInfo,
         val analysis: JukeboxAnalysis,
@@ -16,6 +17,7 @@ data class JukeboxInfo(
         val duration: Int
 )
 
+@Suppress("ArrayInDataClass")
 data class JukeboxAnalysis(
         val sections: Array<SpotifyAudioSection>,
         val bars: Array<SpotifyAudioBar>,
