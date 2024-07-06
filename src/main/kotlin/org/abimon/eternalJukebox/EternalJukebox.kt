@@ -30,7 +30,6 @@ import org.abimon.eternalJukebox.handlers.api.*
 import org.abimon.eternalJukebox.objects.ConstantValues
 import org.abimon.eternalJukebox.objects.EmptyDataAPI
 import org.abimon.eternalJukebox.objects.JukeboxConfig
-import org.abimon.visi.lang.Snowstorm
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.OutputStream
@@ -62,7 +61,6 @@ object EternalJukebox {
     val BASE_64_URL = charArrayOf('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_')
 
     val secureRandom: SecureRandom = SecureRandom()
-    val snowstorm: Snowstorm
 
     val config: JukeboxConfig
     val vertx: Vertx
@@ -147,8 +145,6 @@ object EternalJukebox {
 
         vertx = Vertx.vertx(VertxOptions().setMaxWorkerExecuteTime(config.workerExecuteTime))
         webserver = vertx.createHttpServer()
-
-        snowstorm = Snowstorm(config.epoch)
 
         storage = config.storageType.storage
 

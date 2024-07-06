@@ -10,10 +10,6 @@ data class BufferDataSource(val buffer: Buffer): DataSource {
         get() = buffer.bytes
     override val inputStream: InputStream
         get() = BufferInputStream(buffer)
-    override val location: String
-        get() = "Buffer $buffer"
-    override val seekableInputStream: InputStream
-        get() = inputStream
     override val size: Long
         get() = buffer.length().toLong()
 

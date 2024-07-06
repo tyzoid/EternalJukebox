@@ -49,7 +49,7 @@ object SiteAPI: IAPI {
 
     fun usage(context: RoutingContext) {
         val rows = arrayOf(
-            "Uptime" to startupTime.timeDifference().format(),
+            "Uptime" to startupTime.timeDifference(),
             "Total Memory" to "${memoryFormat.format(Runtime.getRuntime().totalMemory() / 1000000.0)} MB",
             "Free Memory" to "${memoryFormat.format(Runtime.getRuntime().freeMemory() / 1000000.0)} MB",
             "Used Memory" to "${memoryFormat.format(Runtime.getRuntime().usedMemory() / 1000000.0)} MB",
