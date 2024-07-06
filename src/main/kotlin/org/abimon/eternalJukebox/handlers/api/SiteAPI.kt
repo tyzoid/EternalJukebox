@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import org.abimon.eternalJukebox.*
 import org.abimon.eternalJukebox.objects.ClientInfo
 import org.abimon.eternalJukebox.objects.EnumAnalyticType
-import org.abimon.units.data.ByteUnit
 import org.abimon.visi.lang.usedMemory
 import org.abimon.visi.time.timeDifference
 import java.lang.management.ManagementFactory
@@ -50,12 +49,12 @@ object SiteAPI: IAPI {
 
     fun usage(context: RoutingContext) {
         val rows = arrayOf(
-                "Uptime" to startupTime.timeDifference().format(),
-                "Total Memory" to ByteUnit(Runtime.getRuntime().totalMemory()).toMegabytes().format(memoryFormat),
-                "Free Memory" to ByteUnit(Runtime.getRuntime().freeMemory()).toMegabytes().format(memoryFormat),
-                "Used Memory" to ByteUnit(Runtime.getRuntime().usedMemory()).toMegabytes().format(memoryFormat),
-                "CPU Load (Process)" to "${cpuFormat.format(osBean.processCpuLoad)}%",
-                "CPU Load (System)" to "${cpuFormat.format(osBean.systemCpuLoad)}%"
+            "Uptime" to startupTime.timeDifference().format(),
+            "Total Memory" to "${memoryFormat.format(Runtime.getRuntime().totalMemory() / 1000000.0)} MB",
+            "Free Memory" to "${memoryFormat.format(Runtime.getRuntime().freeMemory() / 1000000.0)} MB",
+            "Used Memory" to "${memoryFormat.format(Runtime.getRuntime().usedMemory() / 1000000.0)} MB",
+            "CPU Load (Process)" to "${cpuFormat.format(osBean.processCpuLoad)}%",
+            "CPU Load (System)" to "${cpuFormat.format(osBean.systemCpuLoad)}%"
         )
 
         context.response().putHeader("X-Client-UID", context.clientInfo.userUID).end(FlipTable.of(arrayOf("Key", "Value"), rows.map { (one, two) -> arrayOf(one, two) }.toTypedArray()))
