@@ -70,7 +70,7 @@ object H2Database : HikariDatabase() {
                         update.addBatch()
                     } else {
                         insert.setString(1, songID)
-                        insert.setString(3, location)
+                        insert.setString(2, location)
                         insert.addBatch()
                     }
                 }
