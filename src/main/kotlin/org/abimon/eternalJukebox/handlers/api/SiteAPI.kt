@@ -42,7 +42,7 @@ object SiteAPI: IAPI {
 
     private suspend fun popular(context: RoutingContext) {
         val service = context.pathParam("service")
-        val count = context.request().getParam("count")?.toIntOrNull() ?: context.request().getParam("limit")?.toIntOrNull() ?: 10
+        val count = context.request().getParam("count")?.toIntOrNull() ?: context.request().getParam("limit")?.toIntOrNull() ?: 30
 
         context.response().putHeader("X-Client-UID", context.clientInfo.userUID).end(JsonArray(withContext(Dispatchers.IO) { EternalJukebox.database.providePopularSongs(service, count, context.clientInfo) }))
     }

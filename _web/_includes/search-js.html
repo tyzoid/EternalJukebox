@@ -105,7 +105,7 @@ function init() {
         goDirect();
     });
 
-    $.getJSON('api/site/popular/{% if page.app == 'jukebox' %}jukebox{% elsif page.app == 'canonizer' %}canonizer{% endif %}', {count: 12}, function (data) {
+    $.getJSON('api/site/popular/{% if page.app == 'jukebox' %}jukebox{% elsif page.app == 'canonizer' %}canonizer{% endif %}', {count: 30}, function (data) {
         listTracks('#popular-list', data);
     });
 }
