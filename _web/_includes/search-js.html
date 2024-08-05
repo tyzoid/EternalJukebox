@@ -30,21 +30,6 @@ function listTracks(listElem, tracks) {
     }
 }
 
-
-function showSelection() {
-    $("#selected-list").empty();
-    for (var i = 0; i < selectedSongs.length; i++) {
-        var r = selectedSongs[i];
-        var title = getTitle(r.title, r.artist, null);
-        var li = $("<li>");
-        li.text(title);
-        $("#selected-list").append(li);
-    }
-    if (selectedSongs.length == 2) {
-        $("#go").show();
-    }
-}
-
 function listSong(r) {
     var title = getTitle(r.title, r.artist, null);
     var item = null;

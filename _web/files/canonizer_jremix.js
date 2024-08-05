@@ -1,14 +1,6 @@
 
-function createJRemixer(context, jquery) {
-    var $ = jquery;
-
+function createJRemixer(context) {
     var remixer = {
-
-        remixTrackById: function(id, callback) {
-            $.getJSON("api/info/" + id, function(data) {
-                remixer.remixTrack(data, callback)
-            });
-        },
 
         remixTrack : function(track, canonizerData, callback) {
 
@@ -22,25 +14,19 @@ function createJRemixer(context, jquery) {
 
                 request.onload = function() {
                     trace('audio loaded');
-                     if (false) {
-                        track.buffer = context.createBuffer(request.response, false);
-                        track.status = 'ok'
-                        callback(1, track, 100);
-                    } else {
-                        context.decodeAudioData(request.response, 
-                            function(buffer) {      // completed function
-                                track.buffer = buffer;
-                                track.status = 'ok'
-                                callback(1, track, 100);
-                            }, 
-                            function(e) { // error function
-                                track.status = 'error: loading audio'
-                                callback(-1, track, 0);
-                                console.log('audio error', e);
-                                error("trouble loading audio");
-                            }
-                        );
-                    }
+                    context.decodeAudioData(request.response,
+                        function(buffer) {      // completed function
+                            track.buffer = buffer;
+                            track.status = 'ok'
+                            callback(1, track, 100);
+                        },
+                        function(e) { // error function
+                            track.status = 'error: loading audio'
+                            callback(-1, track, 0);
+                            console.log('audio error', e);
+                            error("trouble loading audio");
+                        }
+                    );
                 };
 
                 request.onerror = function(e) {
@@ -199,7 +185,6 @@ function createJRemixer(context, jquery) {
         },
 
         getPlayer : function() {
-            var speedFactor = 1.00;
             var curQ = null;
             var curAudioSource = null;
             var masterGain = .53;
@@ -216,10 +201,8 @@ function createJRemixer(context, jquery) {
             mainGain.gain.value = masterGain;
             otherGain.gain.value = 1 - masterGain;
 
-            function playQuantumWithDurationSimple(when, q, dur, gain, channel) {
-                var now = context.currentTime;
-                var start = when == 0 ? now : when;
-                start = 0;
+            function playQuantumWithDurationSimple(when, q, dur, gain) {
+                var start = 0;
 
                 if (dur == undefined) {
                     dur = q.duration;
@@ -229,7 +212,7 @@ function createJRemixer(context, jquery) {
                     gain = 1;
                 }
 
-                var duration = dur * speedFactor;
+                var duration = dur;
 
                 var audioSource = context.createBufferSource();
                 var audioGain = ('createGain' in context) ? context.createGain() : context.createGainNode();
@@ -239,10 +222,6 @@ function createJRemixer(context, jquery) {
                 audioSource.start(start, q.start, duration);
                 audioGain.connect(context.destination);
                 return duration + when;
-            }
-
-            function error(s) {
-                console.log(s);
             }
 
             function llPlay(buffer, start, duration, gain) {
@@ -285,20 +264,12 @@ function createJRemixer(context, jquery) {
             }
 
             var player = {
-                play: function(when, q, duration, gain, channel) {
-                    return playQuantumWithDurationSimple(when, q, duration, gain, channel);
+                play: function(when, q, duration, gain) {
+                    return playQuantumWithDurationSimple(when, q, duration, gain);
                 },
 
                 playQ: function(q) {
                     return playQ(q);
-                },
-
-                setSpeedFactor : function(factor) {
-                    speedFactor = factor;
-                },
-
-                getSpeedFactor: function() {
-                    return speedFactor;
                 },
 
                 stop: function() {
@@ -317,35 +288,8 @@ function createJRemixer(context, jquery) {
                 }
             }
             return player;
-        },
-
-        fetchSound : function(audioURL, callback) {
-            var request = new XMLHttpRequest();
-
-            trace("fetchSound " + audioURL);
-            request.open("GET", audioURL, true);
-            request.responseType = "arraybuffer";
-            this.request = request;
-
-            request.onload = function() {
-                var buffer = context.createBuffer(request.response, false);
-                callback(true, buffer);
-            }
-
-            request.onerror = function(e) {
-                callback(false, null);
-            }
-            request.send();
         }
     };
-
-    function isQuantum(a) {
-        return 'start' in a && 'duration' in a;
-    }
-
-    function isAudioBuffer(a) {
-        return 'getChannelData' in a;
-    }
 
     function trace(text) {
         if (false) {
@@ -368,106 +312,4 @@ function euclidean_distance(v1, v2) {
 
 function timbral_distance(s1, s2) {
     return euclidean_distance(s1.timbre, s2.timbre);
-}
-
-
-function clusterSegments(track, numClusters, fieldName, vecName) {
-    var vname = vecName || 'timbre';
-    var fname = fieldName || 'cluster';
-    var maxLoops = 1000;
-
-    function zeroArray(size) {
-        var arry = [];
-        for (var i = 0; i < size; i++) {
-            arry.push(0);
-        }
-        return arry;
-    }
-
-    function reportClusteringStats() {
-        var counts = zeroArray(numClusters);
-        for (var i = 0; i < track.analysis.segments.length; i++) {
-            var cluster = track.analysis.segments[i][fname];
-            counts[cluster]++;
-        }
-        //console.log('clustering stats');
-        for (var i = 0; i < counts.length; i++) {
-            //console.log('clus', i, counts[i]);
-        }
-    }
-
-    function sumArray(v1, v2) {
-        for (var i = 0; i < v1.length; i++) {
-            v1[i] += v2[i];
-        }
-        return v1;
-    }
-
-    function divArray(v1, scalar) {
-        for (var i = 0; i < v1.length; i++) {
-            v1[i] /= scalar
-        }
-        return v1;
-    }
-    function getCentroid(cluster) {
-        var count = 0;
-        var segs = track.analysis.segments;
-        var vsum = zeroArray(segs[0][vname].length);
-
-        for (var i = 0; i < segs.length; i++) {
-            if (segs[i][fname] === cluster) {
-                count++;
-                vsum = sumArray(vsum, segs[i][vname]);
-            }
-        }
-
-        vsum = divArray(vsum, count);
-        return vsum;
-    }
-
-    function findNearestCluster(clusters, seg) {
-        var shortestDistance = Number.MAX_VALUE;
-        var bestCluster = -1;
-
-        for (var i = 0; i < clusters.length; i++) {
-            var distance = euclidean_distance(clusters[i], seg[vname]);
-            if (distance < shortestDistance) {
-                shortestDistance = distance;
-                bestCluster = i;
-            }
-        }
-        return bestCluster;
-    }
-
-    // kmeans clusterer
-    // use random initial assignments
-    for (var i = 0; i < track.analysis.segments.length; i++) {
-        track.analysis.segments[i][fname] = Math.floor(Math.random() * numClusters);
-    }
-
-    reportClusteringStats();
-
-    while (maxLoops-- > 0) {
-        // calculate cluster centroids
-        var centroids = [];
-        for (var i = 0; i < numClusters; i++) {
-            centroids[i] = getCentroid(i);
-        }
-        // reassign segs to clusters
-        var switches = 0;
-        for (var i = 0; i < track.analysis.segments.length; i++) {
-            var seg = track.analysis.segments[i];
-            var oldCluster = seg[fname];
-            var newCluster = findNearestCluster(centroids, seg);
-            if (oldCluster !== newCluster) {
-                switches++;
-                seg[fname] = newCluster;
-            }
-        }
-        //console.log("loopleft", maxLoops, 'switches', switches);
-        if (switches == 0) {
-            break;
-        }
-    }
-    reportClusteringStats();
 }
