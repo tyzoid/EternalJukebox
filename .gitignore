@@ -56,7 +56,8 @@ trid_audio/
 working/
 !/src/main/kotlin/org/abimon/eternalJukebox/data/audio
 /data/
-/database/
+/database/*
+!/database/eternal_jukebox.mv.db.init
 web
 
 # ignore config files

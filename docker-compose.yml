@@ -12,7 +12,7 @@ services:
     volumes:
       - './envvar_config.yaml:/EternalJukebox/envvar_config.yaml'
       - './data:/EternalJukebox/data'
-      - './database/eternal_jukebox.mv.db:/EternalJukebox/eternal_jukebox.mv.db' #used for H2 db. Needs to be manually created
+      - './database/eternal_jukebox.mv.db:/EternalJukebox/eternal_jukebox.mv.db' #used for H2 db. Needs to copied from /database/eternal_jukebox.mv.db.init
     # depends_on:
     #   - db
 
