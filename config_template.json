@@ -1,14 +1,9 @@
 {
-  "baseDomainComment": "The base domain",
-  "baseDomain": "<domain>",
   "portComment": "What port we're running on",
   "port": "<port>",
   "spotifyClientComment": "Spotify Client / Secret; make an application over here: https://developer.spotify.com/my-applications/",
   "spotifyClient": "<spotifyClient>",
   "spotifySecret": "<spotifySecret>",
-  "googleClientComment": "Only needed if you're doing oauth logins",
-  "googleClient": "<googleClient>",
-  "googleSecret": "<googleSecret>",
   "storageComment": "These can be any folders you want",
   "storageType": "LOCAL",
   "storageOptions": {
@@ -26,8 +21,7 @@
     "apiKey": "<API_KEY>"
   },
   "workerExecuteTimeComment": "How long blocking workers can go for (in ns)",
-  "workerExecuteTime": 1200000000000
-
+  "workerExecuteTime": 1200000000000,
   "databaseTypeComment": "Can either be JDBC or H2",
   "databaseTypeComment2": "If H2, you'll need to provide 'databaseName' under options, or leave it blank to default to 'eternal_jukebox'",
   "databaseTypeComment3": "The values below are only needed if you're connecting to something like a MySQL database",

@@ -1,14 +1,8 @@
-# The base domain
-baseDomain: ${DOMAIN}
 # What port we're running on
 port: ${PORT}
 # Spotify Client / Secret; make an application over here: https://developer.spotify.com/my-applications/
 spotifyClient: ${SPOTIFYCLIENT}
 spotifySecret: ${SPOTIFYSECRET}
-
-# Only needed if you're doing oauth logins
-googleClient: ${GOOGLECLIENT}
-googleSecret: ${GOOGLESECRET}
 
 disable:
   # Would only create empty analytics files if not disabled because analyticsProviders is not set
