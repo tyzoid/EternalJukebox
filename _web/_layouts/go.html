@@ -101,6 +101,17 @@ buttons:
                                                                                            type="checkbox"></div>
             <div class="l-cb" id="l-disable-keys"> Disable Keypresses: <input id="disable-keys" type="checkbox"></div>
             <div class="l-cb" id="l-audio-url">Audio URL: <input id="audio-url" type="url"></div>
+            <div id="audio-offset-div">
+                <div id="saudio-offset"><span> Audio offset in seconds:&nbsp; </span><input id="audio-offset" type="number" value="0" step="any"/></div>
+
+                <div class="slider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all"
+                    id="audio-offset-slider"><a class="ui-slider-handle ui-state-default ui-corner-all" href="#"
+                    style="left: 35.8974%;"></a></div>
+                <div id="slider-labels">
+                    <span class="left-label"> -10 s </span>
+                    <span class="right-label"> 20 s </span>
+                </div>
+            </div>
             <br>
             <div class="l-cb" id="l-audio-upload">
                 <form id="audio-upload-form">

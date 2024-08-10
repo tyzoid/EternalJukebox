@@ -62,6 +62,7 @@
         deletedEdges: [],       // edges that should be deleted
 
         audioURL: null,		// The URL to play audio from; null means default
+        audioOffset: 0,
         trackID: null,
         ogAudioURL: null,
 
@@ -277,7 +278,15 @@
         info("Ready!");
         normalizeColor();
         trackReady(t);
+        setTrackOffset();
         drawVisualization();
+    }
+
+    function setTrackOffset() {
+        if (track) {
+            track.offset = jukeboxData.audioOffset;
+            setTunedURL();
+        }
     }
 
     function drawVisualization() {
@@ -457,9 +466,9 @@
         jukeboxData.currentThreshold = jukeboxData.computedThreshold;
         jukeboxData.minRandomBranchChance = defaultMinRandomBranchChance;
         jukeboxData.maxRandomBranchChance = defaultMaxRandomBranchChance;
-        jukeboxData.randomBranchChanceDelta = defaultRandomBranchChanceDelta,
+        jukeboxData.randomBranchChanceDelta = defaultRandomBranchChanceDelta;
 
-            jukeboxData.minRandomBranchChance = defaultMinRandomBranchChance;
+        jukeboxData.minRandomBranchChance = defaultMinRandomBranchChance;
         jukeboxData.maxRandomBranchChance = defaultMaxRandomBranchChance;
         jukeboxData.randomBranchChanceDelta = defaultRandomBranchChanceDelta;
         jukeboxData.audioURL = null;
@@ -508,6 +517,10 @@
 
             if (jukeboxData.audioURL !== null) {
                 p += "&audio=" + encodeURIComponent(jukeboxData.audioURL);
+            }
+
+            if (jukeboxData.audioOffset !== 0) {
+                p += "&audioOffset=" + jukeboxData.audioOffset;
             }
 
             if (jukeboxData.minRandomBranchChance !== defaultMinRandomBranchChance) {
@@ -1403,6 +1416,39 @@
             }
         });
 
+        $("#audio-offset-slider").slider({
+                max: 20,
+                min: -10,
+                step: 0.1,
+                value: 0,
+                change: function (event, ui) {
+                    if (event.originalEvent) {
+                        jukeboxData.audioOffset = ui.value;
+                        setTrackOffset();
+                    }
+                },
+
+                slide: function (event, ui) {
+                    if (event.originalEvent) {
+                        jukeboxData.audioOffset = ui.value;
+                    }
+                }
+            }
+        );
+
+        $("#audio-offset").change(function(event){
+            jukeboxData.audioOffset = event.target.valueAsNumber;
+        }).keypress(function (event) {
+            var keycode = event.keyCode || event.which;
+            if (keycode === 13) {
+                jukeboxData.audioOffset = event.target.valueAsNumber;
+                setTrackOffset();
+            }
+        }).blur(function(event){
+            jukeboxData.audioOffset = event.target.valueAsNumber;
+            setTrackOffset();
+        });
+
         $("#audio-upload").change(function () {
             $.ajax({
                 url: "/api/audio/upload",
@@ -1563,6 +1609,13 @@
         watch(jukeboxData, 'audioURL',
             function () {
                 $("#audio-url").val(decodeURIComponent(jukeboxData.audioURL));
+            }
+        );
+
+        watch(jukeboxData, 'audioOffset',
+            function () {
+                $("#audio-offset").val(jukeboxData.audioOffset);
+                $("#audio-offset-slider").slider("value", jukeboxData.audioOffset);
             }
         );
 
@@ -1861,6 +1914,9 @@
             }
             if ('audio' in params) {
                 jukeboxData.audioURL = decodeURIComponent(params['audio']);
+            }
+            if ('audioOffset' in params) {
+                jukeboxData.audioOffset = parseFloat(params['audioOffset']);
             }
             if ('d' in params) {
                 var df = params['d'].split(',');

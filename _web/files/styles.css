@@ -356,6 +356,30 @@ a:link {text-decoration: none; }
     margin-bottom:10px;
 }
 
+#audio-offset-div {
+    margin-top: 20px;
+}
+
+#saudio-offset {
+    text-align:left;
+    font-weight:bold;
+    margin-bottom:10px;
+    width: 300px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+#saudio-offset > span {
+    flex: 1;
+    white-space: nowrap;
+}
+
+#saudio-offset > input {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
 
 .slider {
     width:300px;

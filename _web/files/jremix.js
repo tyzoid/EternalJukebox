@@ -188,23 +188,34 @@ function createJRemixer(context) {
             var audioGain = context.createGain();
             var curAudioSource = null;
             var curQ = null;
+            var curOffset = 0;
             audioGain.gain.value = 0.5;
             audioGain.connect(context.destination);
 
             function playQuantum(when, q) {
                 var now = context.currentTime;
-                var start = when == 0 ? now : when;
+                var start = when === 0 ? now : when;
                 var next = start + q.duration;
+                var qOffset = q.track.offset || 0;
 
-                if (curQ && curQ.track === q.track && curQ.which + 1 == q.which) {
+                if (curAudioSource && curQ && curQ.track === q.track && curQ.which + 1 === q.which && curOffset === qOffset) {
                     // let it ride
                 } else {
-                    var audioSource = context.createBufferSource();
-                    //audioGain.gain.value = 1;
-                    audioSource.buffer = q.track.buffer;
-                    audioSource.connect(audioGain);
+                    var audioSource = null;
+                    var offset = q.start + qOffset;
                     var duration = track.audio_summary.duration - q.start;
-                    audioSource.start(start, q.start, duration);
+                    if (offset + duration > 0) {
+                        if (offset < 0) {
+                            start += -offset;
+                            duration -= -offset;
+                            offset = 0;
+                        }
+                        audioSource = context.createBufferSource();
+                        //audioGain.gain.value = 1;
+                        audioSource.buffer = q.track.buffer;
+                        audioSource.connect(audioGain);
+                        audioSource.start(start, offset, duration);
+                    }
                     if (curAudioSource) {
                         curAudioSource.stop(start);
                     }
@@ -212,6 +223,7 @@ function createJRemixer(context) {
                 }
                 q.audioSource = curAudioSource;
                 curQ = q;
+                curOffset = qOffset;
                 return next;
             }
 
