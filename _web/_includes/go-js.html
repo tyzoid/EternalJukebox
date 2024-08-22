@@ -63,7 +63,6 @@
 
         audioURL: null,		// The URL to play audio from; null means default
         audioOffset: 0,
-        trackID: null,
         ogAudioURL: null,
 
         minRandomBranchChance: 0,
@@ -471,8 +470,6 @@
         jukeboxData.minRandomBranchChance = defaultMinRandomBranchChance;
         jukeboxData.maxRandomBranchChance = defaultMaxRandomBranchChance;
         jukeboxData.randomBranchChanceDelta = defaultRandomBranchChanceDelta;
-        jukeboxData.audioURL = null;
-        jukeboxData.disableKeys = false;
 
         drawVisualization();
     }
@@ -1249,11 +1246,12 @@
         $("#tune").click(
             function () {
                 var controls = $("#controls");
-                if (jukeboxData.tuningOpen)
+                if (jukeboxData.tuningOpen) {
                     controls.dialog('close');
-                else
+                } else {
                     controls.dialog('open');
-                jukeboxData.tuningOpen = !jukeboxData.tuningOpen;
+                    jukeboxData.tuningOpen = true;
+                }
             }
         );
 
@@ -1284,7 +1282,10 @@
                 title: "Fine tune your endless song",
                 width: 350,
                 position: [4, 4],
-                resizable: false
+                resizable: false,
+                close: function() {
+                    jukeboxData.tuningOpen = false;
+                }
             }
         );
 
@@ -1298,7 +1299,6 @@
             function() {
                 var controls = $("#controls");
                 controls.dialog('close');
-                jukeboxData.tuningOpen = false;
             }
         );
 
@@ -1907,7 +1907,6 @@
 
         if ('id' in params) {
             var id = params['id'];
-            jukeboxData.trackID = id;
 
             if ('thresh' in params) {
                 jukeboxData.currentThreshold = parseInt(params['thresh']);
