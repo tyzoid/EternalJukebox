@@ -267,6 +267,7 @@
         document.title = 'Eternal Jukebox for ' + t.fixedTitle;
         $("#song-title").text(t.fixedTitle);
         $("#song-url").attr("href", "https://open.spotify.com/track/" + t.info.id);
+        $("#song-length").text(secondsToTime(track.audio_summary.duration));
         jukeboxData.minLongBranch = track.analysis.beats.length / 5;
     }
 

@@ -308,6 +308,7 @@ app: jukebox
         document.title = 'Eternal Jukebox for ' + t.fixedTitle;
         $("#song-title").text(t.fixedTitle);
         $("#song-url").attr("href", "https://open.spotify.com/track/" + t.info.id);
+        $("#song-length").text(secondsToTime(track.audio_summary.duration));
         jukeboxData.minLongBranch = track.analysis.beats.length / 5;
     }
 
@@ -2177,6 +2178,7 @@ app: jukebox
                 <div id="l-branch-chance"> Branch chance (%): <span class="ti-val" id="branch-chance">18</span></div>
                 <div id="l-branch-threshold"> Last threshold: <span class="ti-val" id="last-threshold">0</span></div>
                 <br>
+                <div id="l-song-length"> Song length: <span class="ti-val" id="song-length"></span></div>
                 <div id="l-beat-count"> Total beats: <span class="ti-val" id="total-beats"></span></div>
                 <div id="l-branch-count"> Total branches: <span class="ti-val" id="branch-count"></span></div>
                 <div id="l-loop-length-beats"> Longest loop (beats): <span class="ti-val" id="loop-length-beats"></span>
