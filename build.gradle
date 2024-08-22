@@ -21,7 +21,7 @@ ext {
     kotlin_version = "1.8.20"
     vertx_version = "3.9.0"
     jackson_version = "2.9.2"
-    new_pipe_extractor_version = "v0.24.2"
+    new_pipe_extractor_version = "master-SNAPSHOT"
 }
 
 dependencies {
