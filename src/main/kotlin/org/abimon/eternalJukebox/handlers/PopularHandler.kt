@@ -9,7 +9,7 @@ import org.abimon.eternalJukebox.clientInfo
 import org.abimon.eternalJukebox.suspendingHandler
 
 object PopularHandler {
-    private val SPOTIFY_REGEX = "[0-9a-zA-Z]+".toRegex()
+    private val SPOTIFY_REGEX = "[0-9a-zA-Z]{22}".toRegex()
 
     fun setup(router: Router) {
         router.get("/jukebox_go.html").suspendingHandler(this::makeJukeboxPopular)

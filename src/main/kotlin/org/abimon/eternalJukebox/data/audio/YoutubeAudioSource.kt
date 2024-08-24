@@ -135,7 +135,7 @@ object YoutubeAudioSource : IAudioSource {
             }
 
             withContext(Dispatchers.IO) {
-                val videoIDRegex = Regex("Video ID: (\\w+)")
+                val videoIDRegex = Regex("Video ID: ([\\w-]{11})")
                 var videoId: String? = null
                 tmpLog.forEachLine { line: String ->
                     val match = videoIDRegex.find(line)
