@@ -346,7 +346,7 @@ abstract class HikariDatabase : IDatabase {
 
     open fun updateInfo(connection: Connection, updates: Collection<JukeboxInfo>) {
         val insert =
-            connection.prepareStatement("INSERT INTO info_cache(id, song_name, song_title, song_artist, song_url, song_duration) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE;")
+            connection.prepareStatement("INSERT INTO info_cache(id, song_name, song_title, song_artist, song_url, song_duration) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE song_name=VALUES(song_name), song_title=VALUES(song_title), song_artist=VALUES(song_artist), song_url=VALUES(song_url), song_duration=VALUES(song_duration);")
 
         updates.chunked(100) { chunk ->
             insert.clearBatch()
@@ -375,17 +375,11 @@ abstract class HikariDatabase : IDatabase {
             connection.createStatement()
                 .execute("CREATE TABLE IF NOT EXISTS short_urls (id VARCHAR(16) PRIMARY KEY NOT NULL, params VARCHAR(4096) NOT NULL);")
             connection.createStatement()
-                .execute("CREATE TABLE IF NOT EXISTS accounts (eternal_id VARCHAR(64) PRIMARY KEY NOT NULL, google_id VARCHAR(64) NOT NULL, google_access_token VARCHAR(255), google_refresh_token VARCHAR(255), eternal_access_token VARCHAR(255));")
-            connection.createStatement()
                 .execute("CREATE TABLE IF NOT EXISTS popular (id INT PRIMARY KEY AUTO_INCREMENT, song_id VARCHAR(64) NOT NULL, service VARCHAR(64) NOT NULL, hits BIGINT NOT NULL);")
             connection.createStatement()
                 .execute("CREATE TABLE IF NOT EXISTS audio_locations (id VARCHAR(64) PRIMARY KEY NOT NULL, location VARCHAR(8192) NOT NULL);")
             connection.createStatement()
                 .execute("CREATE TABLE IF NOT EXISTS info_cache (id VARCHAR(64) PRIMARY KEY NOT NULL, song_name VARCHAR(256) NOT NULL, song_title VARCHAR(256) NOT NULL, song_artist VARCHAR(256) NOT NULL, song_url VARCHAR(1024) NOT NULL, song_duration INT NOT NULL);")
-
-            connection.createStatement().execute("DROP TABLE IF EXISTS oauth_state;")
-            connection.createStatement()
-                .execute("CREATE TABLE oauth_state (id VARCHAR(32) PRIMARY KEY NOT NULL, path VARCHAR(8192) NOT NULL);")
 
             Unit
         }
