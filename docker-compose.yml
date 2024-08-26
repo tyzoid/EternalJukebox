@@ -3,6 +3,7 @@ services:
   main:
     build: .
     image: eternaljukebox
+    restart: always
     #networks:
     #  - internal
     ports:
