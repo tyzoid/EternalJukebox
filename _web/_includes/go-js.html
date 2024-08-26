@@ -22,7 +22,6 @@
     var highlightColor = "#0000ff";
     var jumpHighlightColor = "#00ff22";
     var selectColor = "#ff0000";
-    var debugMode = true;
 
     var shifted = false;
     var controlled = false;
@@ -191,7 +190,7 @@
                 if (jukeboxData.selectedCurve) {
                     highlightCurve(jukeboxData.selectedCurve, false, false);
                 }
-                selectCurve(curve, true);
+                selectCurve(curve);
                 jukeboxData.selectedCurve = curve;
             });
 
@@ -965,16 +964,6 @@
 
             this.rect.mouseover(function (event) {
                 that.playStyle(false);
-                if (debugMode) {
-                    if (that.q.which > jukeboxData.lastBranchPoint) {
-                        $("#beats").text(that.q.which + ' ' + that.q.reach + '*');
-                    } else {
-                        var qlength = track.analysis.beats.length;
-                        var distanceToEnd = qlength - that.q.which;
-                        $("#beats").text(that.q.which + ' ' + that.q.reach
-                            + ' ' + Math.floor((that.q.reach - distanceToEnd) * 100 / qlength));
-                    }
-                }
                 event.preventDefault();
             });
 
@@ -1506,28 +1495,28 @@
 
         watch(jukeboxData, 'addLastEdge',
             function () {
-                $("#last-branch").attr('checked', jukeboxData.addLastEdge);
+                $("#last-branch").prop('checked', jukeboxData.addLastEdge);
                 setTunedURL();
             }
         );
 
         watch(jukeboxData, 'justBackwards',
             function () {
-                $("#reverse-branch").attr('checked', jukeboxData.justBackwards);
+                $("#reverse-branch").prop('checked', jukeboxData.justBackwards);
                 setTunedURL();
             }
         );
 
         watch(jukeboxData, 'justLongBranches',
             function () {
-                $("#long-branch").attr('checked', jukeboxData.justLongBranches);
+                $("#long-branch").prop('checked', jukeboxData.justLongBranches);
                 setTunedURL();
             }
         );
 
         watch(jukeboxData, 'removeSequentialBranches',
             function () {
-                $("#sequential-branch").attr('checked', jukeboxData.removeSequentialBranches);
+                $("#sequential-branch").prop('checked', jukeboxData.removeSequentialBranches);
                 setTunedURL();
             }
         );
@@ -1622,7 +1611,7 @@
 
         watch(jukeboxData, 'disableKeys',
             function () {
-                $("#disable-keys").attr('checked', jukeboxData.disableKeys);
+                $("#disable-keys").prop('checked', jukeboxData.disableKeys);
                 setTunedURL();
             }
         );
