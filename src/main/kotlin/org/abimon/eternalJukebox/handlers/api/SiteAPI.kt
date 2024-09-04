@@ -18,6 +18,7 @@ import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.util.*
 
+@OptIn(DelicateCoroutinesApi::class)
 object SiteAPI: IAPI {
     override val mountPath: String = "/site"
     private val startupTime: LocalDateTime = LocalDateTime.now()
@@ -53,11 +54,14 @@ object SiteAPI: IAPI {
             "Total Memory" to "${memoryFormat.format(Runtime.getRuntime().totalMemory() / 1000000.0)} MB",
             "Free Memory" to "${memoryFormat.format(Runtime.getRuntime().freeMemory() / 1000000.0)} MB",
             "Used Memory" to "${memoryFormat.format(Runtime.getRuntime().usedMemory() / 1000000.0)} MB",
-            "CPU Load (Process)" to "${cpuFormat.format(osBean.processCpuLoad)}%",
-            "CPU Load (System)" to "${cpuFormat.format(osBean.systemCpuLoad)}%"
+            "CPU Load (Process)" to "${cpuFormat.format(osBean.processCpuLoad * 100)}%",
+            "CPU Load (System)" to "${cpuFormat.format(osBean.systemCpuLoad * 100)}%"
         )
 
-        context.response().putHeader("X-Client-UID", context.clientInfo.userUID).end(FlipTable.of(arrayOf("Key", "Value"), rows.map { (one, two) -> arrayOf(one, two) }.toTypedArray()))
+        context.response()
+            .putHeader("X-Client-UID", context.clientInfo.userUID)
+            .putHeader("Content-Type", "text/plain; charset=UTF-8")
+            .end(FlipTable.of(arrayOf("Key", "Value"), rows.map { (one, two) -> arrayOf(one, two) }.toTypedArray()))
     }
 
     private suspend fun expand(context: RoutingContext) {
