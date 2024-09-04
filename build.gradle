@@ -61,8 +61,8 @@ dependencies {
 
     implementation "com.jakewharton.fliptables:fliptables:1.0.2"
 
-    implementation "com.github.TeamNewPipe.NewPipeExtractor:extractor:$new_pipe_extractor_version"
-    implementation "com.github.TeamNewPipe.NewPipeExtractor:timeago-parser:$new_pipe_extractor_version"
+    implementation "com.github.teamnewpipe.NewPipeExtractor:extractor:$new_pipe_extractor_version"
+    implementation "com.github.teamnewpipe.NewPipeExtractor:timeago-parser:$new_pipe_extractor_version"
 }
 
 compileKotlin {
