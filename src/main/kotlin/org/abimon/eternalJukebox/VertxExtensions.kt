@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Route
 import io.vertx.ext.web.RoutingContext
 import io.vertx.kotlin.coroutines.dispatcher
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.abimon.eternalJukebox.objects.ClientInfo
@@ -50,4 +51,5 @@ val RoutingContext.clientInfo: ClientInfo
 
 operator fun JsonObject.set(key: String, value: Any): JsonObject = put(key, value)
 
+@OptIn(DelicateCoroutinesApi::class)
 fun Route.suspendingHandler(handler: suspend (RoutingContext) -> Unit): Route = handler { ctx -> GlobalScope.launch(ctx.vertx().dispatcher()) { handler(ctx) } }

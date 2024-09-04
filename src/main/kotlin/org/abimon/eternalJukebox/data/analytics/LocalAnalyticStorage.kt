@@ -1,5 +1,6 @@
 package org.abimon.eternalJukebox.data.analytics
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.abimon.eternalJukebox.EternalJukebox
@@ -14,6 +15,7 @@ import java.io.FileOutputStream
 import java.io.PrintStream
 import java.util.*
 
+@OptIn(DelicateCoroutinesApi::class)
 object LocalAnalyticStorage : IAnalyticsStorage {
     private val storageLocations: Map<EnumAnalyticType<*>, File> = EnumAnalyticType.VALUES.associateWith { type ->
         File(

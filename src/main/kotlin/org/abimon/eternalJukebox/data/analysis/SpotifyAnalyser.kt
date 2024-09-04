@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
+@OptIn(DelicateCoroutinesApi::class)
 object SpotifyAnalyser : IAnalyser {
     private val token: AtomicReference<String> = AtomicReference("")
     private val logger: Logger = LoggerFactory.getLogger("SpotifyAnalyser")

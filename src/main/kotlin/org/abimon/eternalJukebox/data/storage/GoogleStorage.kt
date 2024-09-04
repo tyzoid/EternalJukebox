@@ -33,13 +33,14 @@ import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 
+@OptIn(DelicateCoroutinesApi::class)
 object GoogleStorage : IStorage {
     private val serviceEmail: String
     private val algorithm: Algorithm
 
     private val accessTokenLock = ReentrantReadWriteLock()
     private var googleAccessToken: String? = null
-    @OptIn(ObsoleteCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     val tokenContext = newSingleThreadContext("Google Storage Token Lock")
 
     private val webClient: WebClient = WebClient.create(EternalJukebox.vertx)
@@ -606,7 +607,7 @@ object GoogleStorage : IStorage {
                 .withAudience("https://www.googleapis.com/oauth2/v4/token")
                 .withExpiresAt(Date(now + 1 * 60 * 60 * 1000))
                 .withIssuedAt(Date(now)).sign(algorithm)
-            var error: Boolean = false
+            var error = false
 
             val success = exponentiallyBackoff(16000, 8) { attempt ->
                 logger.trace("Attempting to reload Google Storage token; Attempt {}", attempt)
@@ -686,14 +687,14 @@ object GoogleStorage : IStorage {
 
         val defaultBucket = storageOptions["DEFAULT_BUCKET"]?.toString()
 
-        storageBuckets = EnumStorageType.values()
+        storageBuckets = EnumStorageType.entries
             .map { type ->
                 type to (EternalJukebox.config.storageOptions["${type.name}_BUCKET"] as? String ?: defaultBucket)
             }
             .filter { ab -> ab.second != null }
             .associate { (a, b) -> a to b!! }
 
-        storageFolderPaths = EnumStorageType.values()
+        storageFolderPaths = EnumStorageType.entries
             .associateWith { type -> (EternalJukebox.config.storageOptions["${type.name}_FOLDER"] as? String ?: "") }
 
 

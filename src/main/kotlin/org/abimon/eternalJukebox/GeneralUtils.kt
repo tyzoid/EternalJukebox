@@ -5,10 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.vertx.core.json.JsonObject
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -59,6 +56,7 @@ inline fun <T> File.useThenDelete(action: (File) -> T): T? {
 
 val logger: Logger = LoggerFactory.getLogger("Miscellaneous")
 
+@OptIn(DelicateCoroutinesApi::class)
 fun File.guaranteeDelete() {
     delete()
     if (exists()) {

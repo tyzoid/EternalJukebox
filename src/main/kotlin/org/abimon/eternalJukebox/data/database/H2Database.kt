@@ -2,12 +2,14 @@ package org.abimon.eternalJukebox.data.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.abimon.eternalJukebox.objects.ClientInfo
 import org.abimon.eternalJukebox.objects.JukeboxInfo
 import java.sql.Connection
 
+@OptIn(DelicateCoroutinesApi::class)
 object H2Database : HikariDatabase() {
     override val ds: HikariDataSource
 

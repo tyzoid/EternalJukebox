@@ -39,13 +39,13 @@ import java.util.concurrent.TimeUnit
 
 object EternalJukebox {
     val jsonMapper: ObjectMapper = ObjectMapper()
-            .registerModules(Jdk8Module(), KotlinModule(), JavaTimeModule(), ParameterNamesModule())
+            .registerModules(Jdk8Module(), KotlinModule.Builder().build(), JavaTimeModule(), ParameterNamesModule())
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
             .setSerializationInclusion(JsonInclude.Include.NON_ABSENT)
 
     private val yamlMapper: ObjectMapper = ObjectMapper(YAMLFactory())
-            .registerModules(Jdk8Module(), KotlinModule(), JavaTimeModule(), ParameterNamesModule())
+            .registerModules(Jdk8Module(), KotlinModule.Builder().build(), JavaTimeModule(), ParameterNamesModule())
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
             .setSerializationInclusion(JsonInclude.Include.NON_ABSENT)

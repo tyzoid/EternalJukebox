@@ -19,6 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
+@OptIn(DelicateCoroutinesApi::class)
 abstract class HikariDatabase : IDatabase {
     abstract val ds: HikariDataSource
     private val timeBetweenUpdatesMs = EternalJukebox.config.hikariBatchTimeBetweenUpdatesMs
@@ -64,7 +65,7 @@ abstract class HikariDatabase : IDatabase {
 
     private val shortIDStorm = LocalisedSnowstorm.getInstance(1585659600000L)
 
-    @OptIn(ObsoleteCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     val dispatcher = newSingleThreadContext("HikariPropagateDispatcher")
 
     override suspend fun provideAudioTrackOverride(id: String, clientInfo: ClientInfo?): String? {
