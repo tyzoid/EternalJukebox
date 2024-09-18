@@ -2379,11 +2379,12 @@
         $("#tune").click(
             function () {
                 var controls = $("#controls");
-                if (canonizerData.tuningOpen)
+                if (canonizerData.tuningOpen) {
                     controls.dialog('close');
-                else
+                } else {
                     controls.dialog('open');
-                canonizerData.tuningOpen = !canonizerData.tuningOpen;
+                    canonizerData.tuningOpen = true;
+                }
             }
         );
 
@@ -2391,10 +2392,13 @@
         $("#controls").dialog(
             {
                 autoOpen: false,
-                title: "Fine tune your endless song",
-                width: 350,
+                title: "Fine tune your autocanonized song",
+                width: 385,
                 position: [4, 4],
-                resizable: false
+                resizable: false,
+                close: function() {
+                    canonizerData.tuningOpen = false;
+                }
             }
         );
 
