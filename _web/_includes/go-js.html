@@ -235,34 +235,18 @@
     }
 
 
-    function extractTitle(url) {
-        var lastSlash = url.lastIndexOf('/');
-        if (lastSlash >= 0 && lastSlash < url.length - 1) {
-            var res = url.substring(lastSlash + 1, url.length - 4);
-            return res;
-        } else {
-            return url;
-        }
-    }
-
-    function getTitle(title, artist, url) {
-        if (title == undefined || title.length == 0 || title === '(unknown title)' || title == 'undefined') {
-            if (url) {
-                title = extractTitle(url);
-            } else {
-                title = null;
-            }
-        } else {
-            if (artist !== '(unknown artist)') {
+    function getTitle(title, artist) {
+        if (title == null || title.length === 0 || title === '(unknown title)' || title === 'undefined') {
+            title = "Unknown Title";
+        } else if (artist !== '(unknown artist)') {
                 title = title + ' by ' + artist;
-            }
         }
         return title;
     }
 
 
     function trackReady(t) {
-        t.fixedTitle = getTitle(t.info.title, t.info.artist, t.info.url);
+        t.fixedTitle = getTitle(t.info.title, t.info.artist);
         document.title = 'Eternal Jukebox for ' + t.fixedTitle;
         $("#song-title").text(t.fixedTitle);
         $("#song-url").attr("href", "https://open.spotify.com/track/" + t.info.id);
@@ -2050,26 +2034,13 @@
         }
     }
 
-    function extractTitle(url) {
-        var lastSlash = url.lastIndexOf('/');
-        if (lastSlash >= 0 && lastSlash < url.length - 1) {
-            var res = url.substring(lastSlash + 1, url.length - 4);
-            return res;
+    function getTitle(title, artist) {
+        if (title == null || title.length == 0 || title === '(unknown title)' || title == 'undefined') {
+            title = "Unknown Title (autocanonized)";
         } else {
-            return url;
-        }
-    }
-
-    function getTitle(title, artist, url) {
-        if (title == undefined || title.length == 0 || title === '(unknown title)' || title == 'undefined') {
-            if (url) {
-                title = extractTitle(url);
-            } else {
-                title = null;
-            }
-        } else {
+            title = title + ' (autocanonized)'
             if (artist !== '(unknown artist)') {
-                title = title + ' (autocanonized) by ' + artist;
+                title = title + ' by ' + artist;
             }
         }
         return title;
@@ -2081,7 +2052,7 @@
 
 
     function trackReady(t) {
-        t.fixedTitle = getTitle(t.info.title, t.info.artist, t.info.url);
+        t.fixedTitle = getTitle(t.info.title, t.info.artist);
         document.title = t.fixedTitle;
     }
 
