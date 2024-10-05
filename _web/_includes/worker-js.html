@@ -2,7 +2,7 @@
     const worker = new Worker('worker.js');
     const callbacks = new Map();
     let nextId = 1;
-    let isDocumentHidden = document.hidden;
+    let isDocumentHidden = document.hidden || document.webkitHidden || false;
 
     worker.onmessage = function (event) {
         const {id} = event.data;
@@ -36,9 +36,12 @@
         return isDocumentHidden ? workerSetTimeout(callback, delay, ...args) : originalSetTimeout(callback, delay, ...args);
     }
 
-    document.addEventListener('visibilitychange', () => {
-        isDocumentHidden = document.hidden;
-    });
+    function handleVisibilityChange() {
+        isDocumentHidden = document.hidden || document.webkitHidden || false;
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('webkitvisibilitychange', handleVisibilityChange);
 
     window.setTimeout = customSetTimeout;
     window.clearTimeout = customClearTimeout;

@@ -1926,7 +1926,7 @@ app: jukebox
     }
 
     function windowHidden() {
-        return document.webkitHidden;
+        return document.hidden || document.webkitHidden || false;
     }
 
     function processParams() {
