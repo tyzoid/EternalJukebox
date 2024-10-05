@@ -1,39 +1,48 @@
 <script type="text/javascript">
-    const worker = new Worker('worker.js');
-    const callbacks = new Map();
-    let nextId = 1;
-    let isDocumentHidden = document.hidden || document.webkitHidden || false;
+    var worker = new Worker('worker.js');
+    var callbacks = {};
+    var nextId = 1;
+    var isDocumentHidden = document.hidden || document.webkitHidden || false;
 
     worker.onmessage = function (event) {
-        const {id} = event.data;
-        if (callbacks.has(id)) {
-            const callback = callbacks.get(id);
+        var id = event.data.id;
+        if (callbacks.hasOwnProperty(id)) {
+            var callback = callbacks[id];
             callback();
-            callbacks.delete(id);
+            delete callbacks[id];
         }
     };
 
-    const originalSetTimeout = window.setTimeout;
-    const originalClearTimeout = window.clearTimeout;
+    var originalSetTimeout = window.setTimeout;
+    var originalClearTimeout = window.clearTimeout;
 
-    function workerSetTimeout(callback, delay, ...args) {
-        const id = -nextId++; // Use negative IDs for worker timeouts
-        callbacks.set(id, () => callback(...args));
-        worker.postMessage({command: 'setTimeout', id, delay});
+    function workerSetTimeout(callback, delay) {
+        var id = -nextId++; // Use negative IDs for worker timeouts
+        callbacks[id] = function () {
+            callback.apply(null, Array.prototype.slice.call(arguments, 2));
+        };
+        worker.postMessage({command: 'setTimeout', id: id, delay: delay});
         return id;
     }
 
     function customClearTimeout(id) {
-        if (id < 0 && callbacks.has(id)) {
-            callbacks.delete(id);
-            worker.postMessage({command: 'clearTimeout', id});
+        if (id < 0 && callbacks.hasOwnProperty(id)) {
+            delete callbacks[id];
+            worker.postMessage({command: 'clearTimeout', id: id});
         } else {
             originalClearTimeout(id);
         }
     }
 
-    function customSetTimeout(callback, delay, ...args) {
-        return isDocumentHidden ? workerSetTimeout(callback, delay, ...args) : originalSetTimeout(callback, delay, ...args);
+    function customSetTimeout(callback, delay) {
+        var args = Array.prototype.slice.call(arguments, 2);
+        if (isDocumentHidden) {
+            return workerSetTimeout(function () {
+                callback.apply(null, args);
+            }, delay);
+        } else {
+            return originalSetTimeout.apply(null, arguments);
+        }
     }
 
     function handleVisibilityChange() {

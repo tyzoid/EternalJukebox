@@ -1,18 +1,21 @@
-const timeouts = new Map();
+var timeouts = {};
 
 onmessage = function(event) {
-    const { command, id, delay } = event.data;
+    var data = event.data;
+    var command = data.command;
+    var id = data.id;
+    var delay = data.delay;
 
     if (command === 'setTimeout') {
-        const timeoutId = setTimeout(() => {
-            postMessage({ id });
-            timeouts.delete(id);
+        var timeoutId = setTimeout(function() {
+            postMessage({ id: id });
+            delete timeouts[id];
         }, delay);
-        timeouts.set(id, timeoutId);
+        timeouts[id] = timeoutId;
     } else if (command === 'clearTimeout') {
-        if (timeouts.has(id)) {
-            clearTimeout(timeouts.get(id));
-            timeouts.delete(id);
+        if (timeouts.hasOwnProperty(id)) {
+            clearTimeout(timeouts[id]);
+            delete timeouts[id];
         }
     }
 };
