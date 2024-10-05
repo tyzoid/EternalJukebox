@@ -1701,7 +1701,7 @@ app: jukebox
         var bounceCount = 0;
         var nextTime = 0;
         var lateCounter = 0;
-        var lateLimit = 4;
+        var lateLimit = 5;
 
         var beatDiv = $("#beats");
         var timeDiv = $("#time");
@@ -1815,7 +1815,7 @@ app: jukebox
                     // if we are consistently late we should shutdown
                     if (ctime > (nextTime + 0.01)) {
                         lateCounter++;
-                        if (lateCounter++ > lateLimit && windowHidden()) {
+                        if (lateCounter >= lateLimit && windowHidden()) {
                             info("Sorry, can't play music properly in the background");
                             interface.stop();
                             return;
