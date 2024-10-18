@@ -172,8 +172,13 @@ buttons:
             </div>
             <div class="l-cb" id="l-audio-url">Audio URL: <input id="audio-url" type="text" inputmode="url" enterkeyhint="go"></div>
             <br>
-            <div class="l-cb" id="l-audio-upload"><form id="audio-upload-form"><input id="audio-upload" type="file" name="song_upload"
-                                                                                      accept="audio/*"></form></div>
+            <div class="l-cb" id="l-audio-upload">
+                <form id="audio-upload-form">
+                    <input id="audio-upload" type="file" name="song_upload" accept="audio/*">
+                </form>
+                <div class='progress_outer' id="audio-progress" style="background-color: green;">
+                    <div id='_progress' class='progress'></div>
+                </div></div>
             <button class="btn btn-small" id="reset-edges"> Reset</button>
         </div>
     </div>

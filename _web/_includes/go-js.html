@@ -2394,6 +2394,18 @@
                 headers: {
                     "X-XSRF-TOKEN": document.cookie.substring(document.cookie.indexOf("XSRF-TOKEN")).split(";")[0].split("=").slice(1).join("=")
                 },
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = evt.loaded / evt.total;
+                            percentComplete = percentComplete * 100;
+                            $('#audio-progress').text(percentComplete + '%');
+                            $('#audio-progress').css('width', percentComplete + '%');
+                        }
+                    }, false);
+                    return xhr;
+                },
                 success: function (data) {
                     canonizerData.audioURL = 'upl:' + data["id"];
                     setURL();
