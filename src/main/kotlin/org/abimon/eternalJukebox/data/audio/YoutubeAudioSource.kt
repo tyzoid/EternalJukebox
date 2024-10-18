@@ -35,7 +35,7 @@ object YoutubeAudioSource : IAudioSource {
 
     private val logger: Logger = LoggerFactory.getLogger("YoutubeAudioSource")
 
-    private val serviceId = ServiceList.YouTube.serviceId
+    private val newPipeService = ServiceList.YouTube
     val mimes = mapOf(
         "m4a" to "audio/m4a", "aac" to "audio/aac", "mp3" to "audio/mpeg", "ogg" to "audio/ogg", "wav" to "audio/wav"
     )
@@ -61,7 +61,7 @@ object YoutubeAudioSource : IAudioSource {
             }
         }
         if (stringToSearch == null) {
-            val infoItems = searchYouTubeUsingNewPipeExtractor(queryText)
+            val infoItems = searchYouTubeUsingNewPipeExtractor(queryText, 10)
 
             val both = infoItems.sortedWith { o1, o2 ->
                 abs(info.duration - TimeUnit.SECONDS.toMillis(o1.duration)).compareTo(
@@ -257,16 +257,16 @@ object YoutubeAudioSource : IAudioSource {
         return EternalJukebox.jsonMapper.readValue(result, YoutubeSearchResults::class.java).items
     }
 
-    private fun searchYouTubeUsingNewPipeExtractor(queryText: String): MutableList<StreamInfoItem> {
-        val query = NewPipe.getService(serviceId)
+    private fun searchYouTubeUsingNewPipeExtractor(query: String, maxResults: Int = 5): List<StreamInfoItem> {
+        val searchQuery = newPipeService
             .searchQHFactory
-            .fromQuery(queryText, listOf(YoutubeSearchQueryHandlerFactory.VIDEOS), "")
+            .fromQuery(query, listOf(YoutubeSearchQueryHandlerFactory.VIDEOS), "")
 
         val searchInfo: SearchInfo
         try {
-            searchInfo = SearchInfo.getInfo(NewPipe.getService(serviceId), query)
+            searchInfo = SearchInfo.getInfo(newPipeService, searchQuery)
         } catch (e: Exception) {
-            logger.error("Failed to acquire search results for $queryText", e)
+            logger.error("Failed to acquire search results for $query", e)
             return mutableListOf()
         }
         val infoItems = searchInfo.relatedItems
@@ -276,21 +276,20 @@ object YoutubeAudioSource : IAudioSource {
 
         var nextPage = searchInfo.nextPage
         try {
-            while (infoItems.size < 10 && Page.isValid(nextPage)) {
+            while (infoItems.size < maxResults && Page.isValid(nextPage)) {
                 val moreItems: ListExtractor.InfoItemsPage<InfoItem> = SearchInfo.getMoreItems(
-                    NewPipe.getService(serviceId),
-                    query, searchInfo.nextPage
+                    newPipeService,
+                    searchQuery, nextPage
                 )
                 infoItems.addAll(moreItems.items
                     .filterIsInstance<StreamInfoItem>()
-                    .filter { it.streamType == StreamType.VIDEO_STREAM }
-                    .toMutableList())
+                    .filter { it.streamType == StreamType.VIDEO_STREAM })
                 nextPage = moreItems.nextPage
             }
         } catch (e: Exception) {
-            logger.warn("Failed to acquire additional search pages for $queryText", e)
+            logger.warn("Failed to acquire additional search pages for $query", e)
         }
-        return infoItems
+        return infoItems.take(maxResults)
     }
 
     init {
