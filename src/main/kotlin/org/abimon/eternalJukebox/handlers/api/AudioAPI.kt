@@ -214,8 +214,15 @@ object AudioAPI : IAPI {
                     )
                 }
             } else {
-                val (_, response) = Fuel.headOrGet(url)
-                if (response.statusCode < 300) {
+                val response: Response? =
+                    if (url.contains("://") && !url.startsWith("http://") && !url.startsWith("https://")) {
+                        logger.info("[{}] Received URL with invalid protocol {}", context.clientInfo.userUID, url)
+                        null
+                    } else {
+                        Fuel.headOrGet(url).second
+                    }
+
+                if (response != null && response.statusCode < 300) {
                     val mime = response.headers["Content-Type"].firstOrNull()
 
                     if (mime != null && mime.startsWith("audio"))
@@ -477,13 +484,14 @@ object AudioAPI : IAPI {
     }
 
     private fun Fuel.headOrGet(url: String): Pair<Request, Response> {
-        val (headRequest, headResponse) = head(url).response()
+        val urlWithProtocol = if (!url.contains("://")) "https://$url" else url
+        val (headRequest, headResponse) = head(urlWithProtocol).response()
 
         if (headResponse.statusCode == 404) {
-            val (getRequest, getResponse) = get(url).response()
+            val (getRequest, getResponse) = get(urlWithProtocol).response()
 
             if (headResponse.statusCode != getResponse.statusCode)
-                logger.warn("Request to {} gave a different response between HEAD and GET request ({} vs {})", url, headResponse.statusCode, getResponse.statusCode)
+                logger.warn("Request to {} gave a different response between HEAD and GET request ({} vs {})", urlWithProtocol, headResponse.statusCode, getResponse.statusCode)
 
             return getRequest to getResponse
         }
