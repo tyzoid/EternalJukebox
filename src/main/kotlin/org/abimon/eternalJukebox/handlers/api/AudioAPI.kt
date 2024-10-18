@@ -97,6 +97,15 @@ object AudioAPI : IAPI {
 
             val audio = EternalJukebox.audio?.provide(track, context.clientInfo)
 
+            if (context.response().closed()) {
+                logger.debug(
+                    "[{}] User closed connection before the audio response could be sent for track {}",
+                    context.clientInfo.userUID,
+                    id
+                )
+                return
+            }
+
             if (audio == null)
                 context.response().putHeader("X-Client-UID", context.clientInfo.userUID).setStatusCode(400).end(
                     jsonObjectOf(
@@ -328,6 +337,15 @@ object AudioAPI : IAPI {
                                             context.clientInfo
                                         )
                                     }
+                                }
+
+                                if (context.response().closed()) {
+                                    logger.debug(
+                                        "[{}] User closed connection before the audio response could be sent for url {}",
+                                        context.clientInfo.userUID,
+                                        url
+                                    )
+                                    return
                                 }
 
                                 if (EternalJukebox.storage.provide(
