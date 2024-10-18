@@ -2059,7 +2059,6 @@
             trackDuration = curTrack.audio_summary.duration;
             trackReady(curTrack);
             allReady();
-            setURL();
         } else {
             info(t.status);
         }
@@ -2387,7 +2386,7 @@
 
         $("#audio-upload").change(function () {
             $.ajax({
-                url: "upload/song",
+                url: "/api/audio/upload",
                 type: "POST",
                 data: new FormData($('#audio-upload-form')[0]),
                 processData: false,
@@ -2396,8 +2395,8 @@
                     "X-XSRF-TOKEN": document.cookie.substring(document.cookie.indexOf("XSRF-TOKEN")).split(";")[0].split("=").slice(1).join("=")
                 },
                 success: function (data) {
-                    jukeboxData.audioURL = 'upl:' + data["id"];
-                    setTunedURL();
+                    canonizerData.audioURL = 'upl:' + data["id"];
+                    setURL();
                     window.location.reload(true);
                 },
                 error: function (xhr, textStatus, error) {
@@ -2833,8 +2832,7 @@
         function stop() {
             running = false;
             player.stop();
-            $("#play").text("Play");
-            setURL();
+            $("#go").text("Play");
             $("#tweet-span").show();
         }
 
@@ -2864,8 +2862,7 @@
                 running = true;
                 process();
                 $("#tweet-span").hide();
-                setURL();
-                $("#play").text('Stop');
+                $("#go").text('Stop');
             },
 
             resume: function () {
@@ -2874,8 +2871,7 @@
                 running = true;
                 process();
                 $("#tweet-span").hide();
-                setURL();
-                $("#play").text('Stop');
+                $("#go").text('Stop');
             },
 
             stop: stop,
