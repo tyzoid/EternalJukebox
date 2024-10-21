@@ -165,7 +165,7 @@ object AudioAPI : IAPI {
 
     // url -> fallbackURL -> fallbackID
     private suspend fun externalAudio(context: RoutingContext) {
-        val url = context.request().getParam("url")
+        val url = context.request().getParam("url")?.trim()
 
         if (url != null) {
             if (url.startsWith("upl:")) {
@@ -219,7 +219,7 @@ object AudioAPI : IAPI {
                         logger.info("[{}] Received URL with invalid protocol {}", context.clientInfo.userUID, url)
                         null
                     } else {
-                        Fuel.headOrGet(url).second
+                        withContext(Dispatchers.IO) { Fuel.headOrGet(url).second }
                     }
 
                 if (response != null && response.statusCode < 300) {
@@ -487,10 +487,10 @@ object AudioAPI : IAPI {
         val urlWithProtocol = if (!url.contains("://")) "https://$url" else url
         val (headRequest, headResponse) = head(urlWithProtocol).response()
 
-        if (headResponse.statusCode == 404) {
+        if (headResponse.statusCode == 404 || headResponse.statusCode == 405) {
             val (getRequest, getResponse) = get(urlWithProtocol).response()
 
-            if (headResponse.statusCode != getResponse.statusCode)
+            if (headResponse.statusCode != getResponse.statusCode && headResponse.statusCode != 405)
                 logger.warn("Request to {} gave a different response between HEAD and GET request ({} vs {})", urlWithProtocol, headResponse.statusCode, getResponse.statusCode)
 
             return getRequest to getResponse
