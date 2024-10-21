@@ -1,8 +1,7 @@
 package org.abimon.eternalJukebox.data.audio
 
 import com.github.kittinunf.fuel.Fuel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.abimon.eternalJukebox.EternalJukebox
 import org.abimon.eternalJukebox.MediaWrapper
 import org.abimon.eternalJukebox.guaranteeDelete
@@ -25,6 +24,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.abs
 
+@OptIn(DelicateCoroutinesApi::class)
 object YoutubeAudioSource : IAudioSource {
     @Suppress("JoinDeclarationAndAssignment")
     private val apiKey: String?
@@ -40,48 +40,54 @@ object YoutubeAudioSource : IAudioSource {
         "m4a" to "audio/m4a", "aac" to "audio/aac", "mp3" to "audio/mpeg", "ogg" to "audio/ogg", "wav" to "audio/wav"
     )
 
+    @Suppress("HttpUrlsUsage") // We are not going to pay for the last fallback endpoint
+    private val regionCodeEndpoints = listOf(
+        "https://ipapi.co/country_code",
+        "https://ipwho.is/?fields=country_code&output=csv",
+        "http://ip-api.com/line?fields=countryCode"
+    )
+    private const val VIDEO_LINK_PREFIX = "https://youtu.be/"
+    private const val MAX_API_RESULTS = 10
+    private const val MAX_NEWPIPE_RESULTS = 10
+    private var regionCode: String = "US"
+
     private val hitQuota = AtomicLong(-1)
     private val QUOTA_TIMEOUT = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES)
 
     override suspend fun provide(info: JukeboxInfo, clientInfo: ClientInfo?): DataSource? {
         logger.trace("[{}] Attempting to provide audio for {}", clientInfo?.userUID, info.id)
 
-        var stringToSearch: String? = null
+        var youTubeUrl: String? = null
         val queryText = "${info.artist} - ${info.title}"
-        if (apiKey != null) {
-            val searchResults = getMultiContentDetailsWithKey(searchYoutubeWithKey(
-                queryText, 10
-            ).map { it.id.videoId })
-            val both = searchResults.sortedWith { o1, o2 ->
-                abs(info.duration - o1.contentDetails.duration.toMillis()).compareTo(abs(info.duration - o2.contentDetails.duration.toMillis()))
-            }
 
-            both.firstOrNull()?.let { stringToSearch = it.id } ?: run {
+        if (hitQuota.get() != -1L && (Instant.now().toEpochMilli() - hitQuota.get()) >= QUOTA_TIMEOUT) {
+            hitQuota.set(-1)
+        }
+
+        if (apiKey != null && hitQuota.get() == -1L) {
+            val foundVideoIds = getSearchItemsFromApiSearch(queryText).map { it.id.videoId }
+            val videoDetails = if (foundVideoIds.isNotEmpty()) {
+                getMultiContentDetailsWithKey(foundVideoIds)
+            } else emptyList()
+
+            videoDetails.minByOrNull { abs(info.duration - it.contentDetails.duration.toMillis()) }
+                ?.let { youTubeUrl = VIDEO_LINK_PREFIX + it.id } ?: run {
                 logger.warn("[${clientInfo?.userUID}] Searches for \"$queryText\" using YouTube Data API v3 turned up nothing")
             }
         }
-        if (stringToSearch == null) {
-            val infoItems = searchYouTubeUsingNewPipeExtractor(queryText, 10)
+        if (youTubeUrl == null) {
+            val infoItems = getInfoItemsFromNewPipeSearch(queryText)
 
-            val both = infoItems.sortedWith { o1, o2 ->
-                abs(info.duration - TimeUnit.SECONDS.toMillis(o1.duration)).compareTo(
-                    abs(
-                        info.duration - TimeUnit.SECONDS.toMillis(
-                            o2.duration
-                        )
-                    )
-                )
-            }
-            both.firstOrNull()?.let { stringToSearch = it.url } ?: run {
+            infoItems.minByOrNull { abs(info.duration - TimeUnit.SECONDS.toMillis(it.duration)) }
+                ?.let { youTubeUrl = it.url } ?: run {
                 logger.error("[${clientInfo?.userUID}] Searches for \"$queryText\" using NewPipeExtractor turned up nothing")
             }
         }
 
-        if (stringToSearch == null) return null
+        if (youTubeUrl == null) return null
         logger.trace(
-            "[{}] Settled on {}", clientInfo?.userUID, stringToSearch
+            "[{}] Settled on {}", clientInfo?.userUID, youTubeUrl
         )
-
 
         val tmpFile = File("$uuid.tmp")
         val tmpLog = File("${info.id}-$uuid.log")
@@ -91,7 +97,7 @@ object YoutubeAudioSource : IAudioSource {
         try {
             withContext(Dispatchers.IO) {
                 val cmd = ArrayList(command).apply {
-                    add(stringToSearch)
+                    add(youTubeUrl)
                     add(tmpFile.absolutePath)
                     add(format)
                 }
@@ -102,7 +108,7 @@ object YoutubeAudioSource : IAudioSource {
                 if (!downloadProcess.waitFor(90, TimeUnit.SECONDS)) {
                     downloadProcess.destroyForcibly().waitFor()
                     logger.error(
-                        "[{}] Forcibly destroyed the download process for {}", clientInfo?.userUID, stringToSearch
+                        "[{}] Forcibly destroyed the download process for {}", clientInfo?.userUID, youTubeUrl
                     )
                 }
             }
@@ -145,7 +151,7 @@ object YoutubeAudioSource : IAudioSource {
                 }
                 if (videoId != null) {
                     logger.debug("Storing Location from yt-dlp")
-                    EternalJukebox.database.storeAudioLocation(info.id, "https://youtu.be/${videoId}", clientInfo)
+                    EternalJukebox.database.storeAudioLocation(info.id, VIDEO_LINK_PREFIX + videoId, clientInfo)
                 }
                 endGoalTmp.useThenDelete {
                     EternalJukebox.storage.store(
@@ -198,21 +204,15 @@ object YoutubeAudioSource : IAudioSource {
     }
 
     private fun getMultiContentDetailsWithKey(ids: List<String>): List<YoutubeContentItem> {
-        val lastQuota = hitQuota.get()
-
-        if (lastQuota != -1L) {
-            if ((Instant.now().toEpochMilli() - lastQuota) < QUOTA_TIMEOUT) return emptyList()
-            hitQuota.set(-1)
-        }
-
-        val (_, _, r) = Fuel.get(
+        val (result, error) = Fuel.get(
             "https://www.googleapis.com/youtube/v3/videos", listOf(
-                "part" to "contentDetails,snippet", "id" to ids.joinToString(), "key" to (apiKey ?: return emptyList())
+                "part" to "contentDetails,snippet",
+                "id" to ids.joinToString(","),
+                "key" to (apiKey ?: return emptyList())
             )
         ).header("User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:44.0) Gecko/20100101 Firefox/44.0")
             .responseString()
-
-        val (result, error) = r
+            .third
 
         if (error != null) {
             if (error.response.statusCode == 403) {
@@ -225,39 +225,32 @@ object YoutubeAudioSource : IAudioSource {
         return EternalJukebox.jsonMapper.readValue(result, YoutubeContentResults::class.java).items
     }
 
-    private fun searchYoutubeWithKey(query: String, maxResults: Int = 5): List<YoutubeSearchItem> {
-        val lastQuota = hitQuota.get()
-
-        if (lastQuota != -1L) {
-            if ((Instant.now().toEpochMilli() - lastQuota) < QUOTA_TIMEOUT) return emptyList()
-            hitQuota.set(-1)
-        }
-
-        val (_, _, r) = Fuel.get(
+    private fun getSearchItemsFromApiSearch(query: String): List<YoutubeSearchItem> {
+        val (result, error) = Fuel.get(
             "https://www.googleapis.com/youtube/v3/search", listOf(
                 "part" to "snippet",
                 "q" to query,
-                "maxResults" to "$maxResults",
+                "maxResults" to "$MAX_API_RESULTS",
                 "key" to (apiKey ?: return emptyList()),
-                "type" to "video"
+                "type" to "video",
+                "regionCode" to regionCode
             )
         ).header("User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:44.0) Gecko/20100101 Firefox/44.0")
             .responseString()
-
-        val (result, error) = r
+            .third
 
         if (error != null) {
             if (error.response.statusCode == 403) {
                 println("Hit quota!")
                 hitQuota.set(Instant.now().toEpochMilli())
             }
-            return ArrayList()
+            return emptyList()
         }
 
         return EternalJukebox.jsonMapper.readValue(result, YoutubeSearchResults::class.java).items
     }
 
-    private fun searchYouTubeUsingNewPipeExtractor(query: String, maxResults: Int = 5): List<StreamInfoItem> {
+    private fun getInfoItemsFromNewPipeSearch(query: String): List<StreamInfoItem> {
         val searchQuery = newPipeService
             .searchQHFactory
             .fromQuery(query, listOf(YoutubeSearchQueryHandlerFactory.VIDEOS), "")
@@ -276,7 +269,7 @@ object YoutubeAudioSource : IAudioSource {
 
         var nextPage = searchInfo.nextPage
         try {
-            while (infoItems.size < maxResults && Page.isValid(nextPage)) {
+            while (infoItems.size < MAX_NEWPIPE_RESULTS && Page.isValid(nextPage)) {
                 val moreItems: ListExtractor.InfoItemsPage<InfoItem> = SearchInfo.getMoreItems(
                     newPipeService,
                     searchQuery, nextPage
@@ -289,7 +282,21 @@ object YoutubeAudioSource : IAudioSource {
         } catch (e: Exception) {
             logger.warn("Failed to acquire additional search pages for $query", e)
         }
-        return infoItems.take(maxResults)
+        return infoItems.take(MAX_NEWPIPE_RESULTS)
+    }
+
+    private fun setRegionCodeForIP() {
+        for (endpoint in regionCodeEndpoints) {
+            val (result, error) = Fuel.get(endpoint).responseString().third
+            if (error == null) {
+                result?.trim()?.takeIf { it.matches(Regex("^[A-Za-z]{2}$")) }?.let {
+                    regionCode = it
+                    return
+                }
+            }
+            logger.info("Failed to acquire region code from $endpoint", error)
+        }
+        logger.warn("Failed to acquire region code for IP. Falling back to $regionCode")
     }
 
     init {
@@ -301,13 +308,14 @@ object YoutubeAudioSource : IAudioSource {
             ?: EternalJukebox.config.audioSourceOptions["audioCommand"]) as? List<*>)?.map { "$it" }
             ?: ((EternalJukebox.config.audioSourceOptions["AUDIO_COMMAND"]
                 ?: EternalJukebox.config.audioSourceOptions["audioCommand"]) as? String)?.split("\\s+".toRegex())
-                    ?: if (System.getProperty("os.name").lowercase()
-                    .contains("windows")
+                    ?: if (System.getProperty("os.name").lowercase().contains("windows")
             ) listOf("yt.bat") else listOf("sh", "yt.sh")
 
-        if (apiKey == null) logger.warn(
-            "Warning: No API key provided. We're going to scrape the Youtube search page which is a not great thing to do.\nTo obtain an API key, follow the guide here (https://developers.google.com/youtube/v3/getting-started) or over on the EternalJukebox Github page!"
-        )
+        if (apiKey == null) {
+            logger.warn("Warning: No API key provided. Only NewPipeExtractor will be used to find audio sources.")
+        } else {
+            GlobalScope.launch(Dispatchers.IO) { setRegionCodeForIP() }
+        }
         NewPipe.init(DownloaderImpl.init())
     }
 }

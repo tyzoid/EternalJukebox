@@ -179,7 +179,7 @@ object EternalJukebox {
         if (isEnabled("audioAPI")) {
             apis.add(AudioAPI)
 
-            audio = config.audioSourceType?.audio?.objectInstance
+            audio = config.audioSourceType.audio.objectInstance
         } else {
             audio = EmptyDataAPI
         }

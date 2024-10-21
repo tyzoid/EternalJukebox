@@ -15,7 +15,7 @@ data class JukeboxConfig(
         val storageType: EnumStorageSystem = EnumStorageSystem.LOCAL,
         val storageOptions: Map<String, Any?> = emptyMap(),
 
-        val audioSourceType: EnumAudioSystem? = null,
+        val audioSourceType: EnumAudioSystem = EnumAudioSystem.YOUTUBE,
         val audioSourceOptions: Map<String, Any?> = emptyMap(),
 
         val analyticsStorageType: EnumAnalyticsStorage = EnumAnalyticsStorage.LOCAL,
