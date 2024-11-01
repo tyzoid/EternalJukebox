@@ -164,8 +164,12 @@ hr {
     text-align:left;
 }
 
-.song-link:hover {
-    cursor:pointer;
+.song-link.song-link { /* also overwrites hover, focus, active */
+    color: inherit;
+    text-decoration: inherit;
+    font-weight: inherit;
+    display: list-item;
+    width: fit-content;
 }
 
 a {

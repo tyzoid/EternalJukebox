@@ -108,8 +108,13 @@ li.dropdown {
     float:right;
 }
 
-#song-list, #search-list, #popular-list {
-    cursor:pointer;
+.song-link.song-link { /* also overwrites hover, focus, active */
+    color: inherit;
+    text-decoration: inherit;
+    font-weight: inherit;
+    display: list-item;
+    list-style-position: inside;
+    width: fit-content;
 }
 
 .ui-dialog {

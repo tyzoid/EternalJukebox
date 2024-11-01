@@ -361,12 +361,11 @@ app: jukebox
         var title = getTitle(r.title, r.artist, null);
         var item = null;
         if (title) {
-            var item = $('<li>').append(title);
+            item = $('<a>').append(title);
 
             item.attr('class', 'song-link');
-            item.click(function () {
-                showPlotPage(r.id);
-            });
+            item.attr('role', 'listitem');
+            item.attr('href', location.pathname + "?id=" + r.id);
         }
         return item;
     }
@@ -2011,12 +2010,6 @@ app: jukebox
         } else {
             setDisplayMode(false);
         }
-    }
-
-    function showPlotPage(id) {
-        var url = location.protocol + "//" +
-            location.host + location.pathname + "?id=" + id;
-        location.href = url;
     }
 
     function isTuned(url) {
