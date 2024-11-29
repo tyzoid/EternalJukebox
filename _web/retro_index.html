@@ -403,6 +403,9 @@ app: jukebox
                 gotTheAnalysis(data);
             },
             error: function(xhr, textStatus, error) {
+                if (xhr.responseJSON && typeof xhr.responseJSON.error === "string") {
+                    error = xhr.responseJSON.error;
+                }
                 info("Sorry, can't find info for that track: " + error)
             }
         });

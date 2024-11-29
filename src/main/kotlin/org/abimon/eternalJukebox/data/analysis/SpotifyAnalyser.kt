@@ -8,12 +8,11 @@ import kotlinx.coroutines.*
 import org.abimon.eternalJukebox.EternalJukebox
 import org.abimon.eternalJukebox.bearer
 import org.abimon.eternalJukebox.exponentiallyBackoff
-import org.abimon.eternalJukebox.objects.*
-import org.abimon.eternalJukebox.tryReadValue
-import org.abimon.visi.io.ByteArrayDataSource
+import org.abimon.eternalJukebox.objects.ClientInfo
+import org.abimon.eternalJukebox.objects.JukeboxInfo
+import org.abimon.eternalJukebox.objects.SpotifyError
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -109,164 +108,6 @@ object SpotifyAnalyser : IAnalyser {
             logger.trace("[{}] Failed to search for \"{}\". Error: {}", clientInfo?.userUID, query, error)
 
         return array.toTypedArray()
-    }
-
-    override suspend fun analyse(id: String, clientInfo: ClientInfo?): JukeboxTrack? {
-        var error: SpotifyError? = null
-        var track: JukeboxTrack? = null
-        val info = getInfo(id, clientInfo)
-
-        if (info == null) {
-            logger.warn("[{}] Failed to analyse {} on Spotify; track info was null", clientInfo?.userUID, id)
-            return null
-        }
-
-        val success = exponentiallyBackoff(16000, 8) {
-            logger.trace("[{}] Attempting to analyse {} on Spotify", clientInfo?.userUID, id)
-            val (_, response, _) = Fuel.get("https://api.spotify.com/v1/audio-analysis/$id")
-                .bearer(token.get())
-                .awaitStringResponseResult()
-            val mapResponse =
-                withContext(Dispatchers.IO) { EternalJukebox.jsonMapper.tryReadValue(response.data, Map::class) }
-
-            when (response.statusCode) {
-                200 -> {
-                    if (mapResponse == null) {
-                        val name = "SPOTIFY-RESPONSE-200-${UUID.randomUUID()}.txt"
-                        if (EternalJukebox.storage.shouldStore(EnumStorageType.LOG) && EternalJukebox.storage.store(
-                                name,
-                                EnumStorageType.LOG,
-                                ByteArrayDataSource(response.data),
-                                "text/plain",
-                                clientInfo
-                            )
-                        ) {
-                            logger.warn(
-                                "[{}] Got back response code 200; invalid response body however; saved as {}",
-                                clientInfo?.userUID,
-                                name
-                            )
-                            return@exponentiallyBackoff true
-                        } else {
-                            logger.warn(
-                                "[{}] Got back response code 200; invalid response body however; did not save due to an error or log saving being disabled",
-                                clientInfo?.userUID
-                            )
-                            return@exponentiallyBackoff true
-                        }
-                    }
-
-                    val obj = JsonObject(mapResponse.mapKeys { (key) -> "$key" })
-                    track = JukeboxTrack(
-                        info,
-                        withContext(Dispatchers.IO) {
-                            JukeboxAnalysis(
-                                EternalJukebox.jsonMapper.readValue(
-                                    obj.getJsonArray("sections").toString(),
-                                    Array<SpotifyAudioSection>::class.java
-                                ),
-                                EternalJukebox.jsonMapper.readValue(
-                                    obj.getJsonArray("bars").toString(),
-                                    Array<SpotifyAudioBar>::class.java
-                                ),
-                                EternalJukebox.jsonMapper.readValue(
-                                    obj.getJsonArray("beats").toString(),
-                                    Array<SpotifyAudioBeat>::class.java
-                                ),
-                                EternalJukebox.jsonMapper.readValue(
-                                    obj.getJsonArray("tatums").toString(),
-                                    Array<SpotifyAudioTatum>::class.java
-                                ),
-                                EternalJukebox.jsonMapper.readValue(
-                                    obj.getJsonArray("segments").toString(),
-                                    Array<SpotifyAudioSegment>::class.java
-                                )
-                            )
-                        },
-                        JukeboxSummary((mapResponse["track"] as Map<*, *>)["duration"] as Double)
-                    )
-
-                    return@exponentiallyBackoff false
-                }
-                400 -> {
-                    if (mapResponse == null) {
-                        val name = "SPOTIFY-RESPONSE-400-${UUID.randomUUID()}.txt"
-                        if (EternalJukebox.storage.shouldStore(EnumStorageType.LOG) && EternalJukebox.storage.store(
-                                name,
-                                EnumStorageType.LOG,
-                                ByteArrayDataSource(response.data),
-                                "text/plain",
-                                clientInfo
-                            )
-                        ) {
-                            logger.warn(
-                                "[{}] Got back response code 400; invalid response body however; saved as {}",
-                                clientInfo?.userUID,
-                                name
-                            )
-                            return@exponentiallyBackoff true
-                        } else {
-                            logger.warn(
-                                "[{}] Got back response code 400; invalid response body however; did not save due to an error or log saving being disabled",
-                                clientInfo?.userUID
-                            )
-                            return@exponentiallyBackoff true
-                        }
-                    }
-
-                    if (((mapResponse["error"] as Map<*, *>)["message"] as String) == "Only valid bearer authentication supported") {
-                        logger.error(
-                            "[{}] Got back response code 400  with error \"Only valid bearer authentication supported\"; reloading token, backing off, and trying again",
-                            clientInfo?.userUID
-                        )
-                        reload()
-                        return@exponentiallyBackoff true
-                    } else {
-                        logger.error(
-                            "[{}] Got back response code 400 with data \"{}\"; returning INVALID_SEARCH_DATA",
-                            clientInfo?.userUID,
-                            response.body().asString(response.header("Content-Type").firstOrNull())
-                        )
-                        error = SpotifyError.INVALID_SEARCH_DATA
-                        return@exponentiallyBackoff false
-                    }
-                }
-                401 -> {
-                    logger.error(
-                        "[{}] Got back response code 401  with data \"{}\"; reloading token, backing off, and trying again",
-                        clientInfo?.userUID,
-                        response.body().asString(response.header("Content-Type").firstOrNull())
-                    )
-                    reload()
-                    return@exponentiallyBackoff true
-                }
-                429 -> {
-                    val backoff = response.header("Retry-After").firstOrNull()?.toIntOrNull() ?: 4
-                    logger.warn(
-                        "[{}] Got back response code 429; waiting {} seconds before trying again",
-                        clientInfo?.userUID, backoff
-                    )
-                    delay(backoff * 1000L)
-                    return@exponentiallyBackoff true
-                }
-                else -> {
-                    logger.warn(
-                        "[{}] Got back response code {} with data \"{}\"; backing off and trying again",
-                        clientInfo?.userUID,
-                        response.statusCode,
-                        response.body().asString(response.header("Content-Type").firstOrNull())
-                    )
-                    return@exponentiallyBackoff true
-                }
-            }
-        } && error == null
-
-        if (success)
-            logger.trace("[{}] Successfully analysed {} from Spotify", clientInfo?.userUID, id)
-        else
-            logger.warn("[{}] Failed to analyse {}. Error: {}", clientInfo?.userUID, id, error)
-
-        return track
     }
 
     override suspend fun getInfo(id: String, clientInfo: ClientInfo?): JukeboxInfo? {
