@@ -13,7 +13,7 @@ interface IStorage {
 
     val disabledStorageTypes: List<EnumStorageType>
         get() = storageOptions.let { storageOptionMap ->
-            EnumStorageType.values().filter { enumStorageType -> storageOptionMap["${enumStorageType.name.uppercase(Locale.getDefault())}_IS_DISABLED"]?.toString()?.toBoolean() ?: false }
+            EnumStorageType.entries.filter { enumStorageType -> storageOptionMap["${enumStorageType.name.uppercase(Locale.getDefault())}_IS_DISABLED"]?.toString()?.toBoolean() ?: false }
         }
 
     /**

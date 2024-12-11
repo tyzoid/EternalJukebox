@@ -51,6 +51,7 @@ object GoogleStorage : IStorage {
     private val storageSupportsCors: MutableList<EnumStorageType>
 
     private val publicStorageTypes = arrayOf(
+        EnumStorageType.UPLOADED_ANALYSIS,
         EnumStorageType.UPLOADED_AUDIO,
         EnumStorageType.ANALYSIS,
         EnumStorageType.AUDIO,

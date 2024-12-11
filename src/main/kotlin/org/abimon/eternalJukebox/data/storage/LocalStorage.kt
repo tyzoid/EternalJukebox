@@ -13,7 +13,7 @@ import java.io.FileOutputStream
 import java.util.*
 
 object LocalStorage : IStorage {
-    private val storageLocations: Map<EnumStorageType, File> = EnumStorageType.values().associateWith { type ->
+    private val storageLocations: Map<EnumStorageType, File> = EnumStorageType.entries.associateWith { type ->
         File(
             EternalJukebox.config.storageOptions["${type.name}_FOLDER"] as? String
                 ?: type.name.lowercase(Locale.getDefault())

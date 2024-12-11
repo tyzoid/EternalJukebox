@@ -19,7 +19,7 @@ repositories {
 ext {
     kotlin_version = '1.9.25'
     vertx_version = '3.9.16'
-    jackson_version = '2.17.2'
+    jackson_version = '2.18.2'
     new_pipe_extractor_version = 'master-SNAPSHOT'
 }
 

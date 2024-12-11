@@ -18,6 +18,7 @@ storageOptions:
   AUDIO_FOLDER: data/audio
   EXTERNAL_AUDIO_FOLDER: data/external_audio
   UPLOADED_AUDIO_FOLDER: data/uploaded_audio
+  UPLOADED_ANALYSIS_FOLDER: data/uploaded_analysis
   PROFILE_FOLDER: data/profile
   LOG_FOLDER: data/log
 
