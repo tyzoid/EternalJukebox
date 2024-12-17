@@ -23,7 +23,7 @@
         <li>
             <strong>Open Spotify:</strong>
             Use this link to open Spotify in your browser and log in (Premium account not required):
-            <a href="https://open.spotify.com" target="_blank" class="btn btn-small btn-default">Open Spotify</a>.
+            <a href="https://open.spotify.com" target="_blank" class="btn btn-small btn-default">Open Spotify</a> <a id="current-song-link" target="_blank" class="btn btn-small btn-default" style="display: none;">Open current song in Spotify</a>
         </li>
         <li>
             <strong>Play a Spotify track:</strong>
@@ -60,18 +60,24 @@
     </div>
 
     <script>
-        $("#analysis-upload").change(function () {
-            var params = {};
-            var q = document.URL.split('?')[1];
-            if (q !== undefined) {
-                q = q.split('&');
-                for (var i = 0; i < q.length; i++) {
-                    var pv = q[i].split('=');
-                    var p = pv[0];
-                    var v = pv[1];
-                    params[p] = v;
-                }
+        var params = {};
+        var q = document.URL.split('?')[1];
+        if (q !== undefined) {
+            q = q.split('&');
+            for (var i = 0; i < q.length; i++) {
+                var pv = q[i].split('=');
+                var p = pv[0];
+                var v = pv[1];
+                params[p] = v;
             }
+        }
+
+        if ('id' in params) {
+            $("#current-song-link").attr("href", "https://open.spotify.com/track/" + params['id']);
+            $("#current-song-link").show();
+        }
+
+        $("#analysis-upload").change(function () {
             if (!'id' in params) {
                 $("#error").text("You must be on a song page to upload analysis data.");
                 $("#error").show();

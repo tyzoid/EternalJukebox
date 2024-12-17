@@ -149,10 +149,9 @@ object AnalysisAPI : IAPI {
                         )
                     )
                 },
-                JukeboxSummary((mapResponse["track"] as Map<*, *>)["duration"] as Double)
+                JukeboxSummary((mapResponse["track"] as Map<*, *>)["duration"].toString().toDouble())
             )
 
-            // check track.info.duration (193400) / 1000 == track.audio_summary.duration (193.4)
             if (track.info.duration != (track.audio_summary.duration * 1000).toInt()) {
                 return context.endWithStatusCode(400) {
                     this["error"] = "Track duration does not match analysis duration. This is likely due to an incorrect analysis file. Make sure it is for the song ${info.name} by ${info.artist}"
